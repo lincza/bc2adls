@@ -52,6 +52,7 @@ codeunit 82566 "ADLSE CDM Util" // Refer Common Data Model https://docs.microsof
         Columns: JsonArray;
         Column: JsonObject;
         SchemaDefinition: JsonObject;
+        DataType: Text;
     begin
         //Must be systemId and $Company because of the deleted record table
         RecordRef.Open(TableID);
@@ -69,11 +70,19 @@ codeunit 82566 "ADLSE CDM Util" // Refer Common Data Model https://docs.microsof
         foreach FieldId in FieldIdList do begin
             FieldRef := RecordRef.Field(FieldId);
             Clear(Column);
+            Clear(DataType);
             Column.Add('Name', ADLSEUtil.GetDataLakeCompliantFieldName(FieldRef));
-            if ADLSESetup."Storage Type" = ADLSESetup."Storage Type"::"Open Mirroring" then
-                Column.Add('DataType', GetOpenMirrorDataFormat(FieldRef.Type))
-            else
-                Column.Add('DataType', GetFabricDataFormat(FieldRef.Type));
+            if ADLSESetup."Storage Type" = ADLSESetup."Storage Type"::"Open Mirroring" then begin
+                DataType := GetOpenMirrorDataFormat(FieldRef.Type);
+                Column.Add('DataType', DataType)
+            end
+            else begin
+                DataType := GetFabricDataFormat(FieldRef.Type);
+                Column.Add('DataType', DataType);
+            end;
+            if (FieldRef.Number <> RecordRef.SystemIdNo()) and (DataType <> GetCDMDataFormat_String()) then begin
+                Column.Add('IsNullable', true);
+            end;
             Columns.Add(Column);
         end;
 
