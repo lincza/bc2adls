@@ -224,7 +224,7 @@ table 82560 "ADLSE Setup"
         }
         field(75; "Use Field Captions"; Boolean)
         {
-            Caption = 'Use Captions';
+            Caption = 'Use Field Captions';
             ToolTip = 'Specifies if the captions of fields will be used instead of names.';
             InitValue = false;
         }
@@ -238,6 +238,12 @@ table 82560 "ADLSE Setup"
         {
             Caption = 'Use friendly company name';
             ToolTip = 'Specifies if the friendly CompanyName will be used instead of the $Company';
+            InitValue = false;
+        }
+        field(95; "Use Table Captions"; Boolean)
+        {
+            Caption = 'Use Table Captions';
+            ToolTip = 'Specifies if the captions of fields will be used instead of names.';
             InitValue = false;
         }
     }
