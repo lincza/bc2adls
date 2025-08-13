@@ -15,6 +15,7 @@ permissionset 82560 "ADLSE - Setup"
                   table "ADLSE Setup" = x,
                   tabledata "ADLSE Setup" = RIMD,
                   tabledata "ADLSE Table" = RIMD,
+                  tabledata "ADLSE Company Setup Table" = RIMD,
                   tabledata "ADLSE Field" = RIMD,
                   tabledata "ADLSE Deleted Record" = RD,
                   tabledata "ADLSE Current Session" = R,
@@ -40,6 +41,7 @@ permissionset 82560 "ADLSE - Setup"
                   page "ADLSE Export Categories" = X,
                   page "ADLSE Assign Export Category" = X,
                   page "Deleted Tables Not To Sync" = X,
+                  page "ADLSE Company Setup" = x,
                   report "ADLSE Schedule Task Assignment" = X,
                   xmlport "BC2ADLS Import" = X;
 }
