@@ -88,6 +88,19 @@ table 82566 "ADLSE Run"
         ErrorIfAny := '';
     end;
 
+    procedure GetLastRunDetailsPerCompany(TableID: Integer; var Status: Enum "ADLSE Run State"; var StartedTime: DateTime; var ErrorIfAny: Text[2048]; SyncCompany: Text[30])
+    begin
+        if FindLastRunPerCompany(TableID, SyncCompany) then begin
+            Status := Rec.State;
+            StartedTime := Rec.Started;
+            ErrorIfAny := Rec.Error;
+            exit;
+        end;
+        Status := "ADLSE Run State"::None;
+        StartedTime := 0DT;
+        ErrorIfAny := '';
+    end;
+
     procedure Duration(): Duration
     begin
         if (Started = 0DT) or (Ended = 0DT) then
@@ -204,6 +217,16 @@ table 82566 "ADLSE Run"
         Rec.Ascending(false); // order results in a way that the last one shows up first
         Rec.SetRange("Table ID", TableID);
         Rec.SetRange("Company Name", CompanyName());
+        Found := Rec.FindFirst();
+    end;
+
+    [InherentPermissions(PermissionObjectType::TableData, Database::"ADLSE run", 'r')]
+    local procedure FindLastRunPerCompany(TableID: Integer; CompanyName: text[30]) Found: Boolean
+    begin
+        Rec.SetCurrentKey(ID);
+        Rec.Ascending(false); // order results in a way that the last one shows up first
+        Rec.SetRange("Table ID", TableID);
+        Rec.SetRange("Company Name", CompanyName);
         Found := Rec.FindFirst();
     end;
 

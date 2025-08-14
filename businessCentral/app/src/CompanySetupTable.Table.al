@@ -37,12 +37,6 @@ table 82572 "ADLSE Company Setup Table"
         {
             Editable = false;
         }
-        field(10; ExportCategory; Code[50])
-        {
-            TableRelation = "ADLSE Export Category Table";
-            DataClassification = CustomerContent;
-            ToolTip = 'Specifies the Export Category which can be linked to tables which are part of the export to Azure Datalake. The Category can be used to schedule the export.';
-        }
         field(15; ExportFileNumber; Integer)
         {
             Caption = 'Export File Number';
@@ -52,7 +46,7 @@ table 82572 "ADLSE Company Setup Table"
 
     keys
     {
-        key(Key1; "Table ID")
+        key(PK; "Table ID", "Sync Company")
         {
             Clustered = true;
         }
