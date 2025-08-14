@@ -204,7 +204,7 @@ page 82566 "ADLSE Company Setup"
     var
         ADLSECurrentSession: Record "ADLSE Current Session";
     begin
-        NoExportInProgress := not ADLSECurrentSession.AreAnySessionsActive();
+        // NoExportInProgress := not ADLSECurrentSession.AreAnySessionsActive();
     end;
 
     trigger OnAfterGetRecord()
