@@ -42,6 +42,27 @@ table 82572 "ADLSE Company Setup Table"
             Caption = 'Export File Number';
             AllowInCustomizations = Always;
         }
+        field(40; "Updated Last Timestamp"; BigInteger)
+        {
+            Caption = 'Last timestamp';
+        }
+        field(45; "Last Timestamp Deleted"; BigInteger)
+        {
+            Caption = 'Last timestamp deleted';
+        }
+        field(50; "Last Run State"; Enum "ADLSE Run State")
+        {
+            Caption = 'Last exported state';
+        }
+        field(55; "Last Started"; DateTime)
+        {
+            Caption = 'Last started at';
+        }
+        field(60; "Last Error"; Text[2048])
+        {
+            Caption = 'Last error';
+        }
+
     }
 
     keys

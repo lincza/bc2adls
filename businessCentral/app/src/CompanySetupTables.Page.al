@@ -15,18 +15,17 @@ page 82565 "ADLSE Company Setup Tables"
                 field("Table ID"; Rec."Table ID")
                 {
                     ApplicationArea = All;
+                    ToolTip = 'Specifies the internal ID of the table to export.';
                 }
                 field("Table Caption"; Rec."Table Caption")
                 {
                     ApplicationArea = All;
+                    ToolTip = 'Shows the caption of the table to export.';
                 }
                 field("Sync Company"; Rec."Sync Company")
                 {
                     ApplicationArea = All;
-                }
-                field("Last Sync"; Rec."Last Sync")
-                {
-                    ApplicationArea = All;
+                    ToolTip = 'Specifies the company this table is synced for.';
                 }
                 field(FieldsChosen; NumberFieldsChosenValue)
                 {
@@ -35,43 +34,41 @@ page 82565 "ADLSE Company Setup Tables"
                     Caption = '# Fields selected';
                     ToolTip = 'Specifies if any field has been chosen to be exported. Click on Choose Fields action to add fields to export.';
                 }
-                field(Status; LastRunState)
+                field(Status; Rec."Last Run State")
                 {
                     ApplicationArea = All;
                     Caption = 'Last exported state';
                     Editable = false;
                     ToolTip = 'Specifies the status of the last export from this table in this company.';
                 }
-                field(LastRanAt; LastStarted)
+                field("Last Started"; Rec."Last Started")
                 {
                     ApplicationArea = All;
                     Caption = 'Last started at';
                     Editable = false;
                     ToolTip = 'Specifies the time of the last export from this table in this company.';
                 }
-                field(LastError; LastRunError)
+                field("Last Error"; Rec."Last Error")
                 {
                     ApplicationArea = All;
                     Caption = 'Last error';
                     Editable = false;
                     ToolTip = 'Specifies the error message from the last export of this table in this company.';
                 }
-                field(LastTimestamp; UpdatedLastTimestamp)
+                field("Updated Last Timestamp"; Rec."Updated Last Timestamp")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the timestamp of the record in this table that was exported last.';
                     Caption = 'Last timestamp';
                     Visible = false;
                 }
-                field(LastTimestampDeleted; DeletedRecordLastEntryNo)
+                field("Last Timestamp Deleted"; Rec."Last Timestamp Deleted")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the timestamp of the deleted records in this table that was exported last.';
                     Caption = 'Last timestamp deleted';
                     Visible = false;
                 }
-
-
             }
         }
     }
@@ -86,30 +83,17 @@ page 82565 "ADLSE Company Setup Tables"
     trigger OnAfterGetRecord()
     var
         TableMetadata: Record "Table Metadata";
-        ADLSETableLastTimestamp: Record "ADLSE Table Last Timestamp";
-        ADLSERun: Record "ADLSE Run";
         ADLSETable: Record "ADLSE Table";
+        NewSessionId: Integer;
     begin
-        if ADLSETable.Get(Rec."Table ID") then begin
-            if TableMetadata.Get(Rec."Table ID") then begin
-                NumberFieldsChosenValue := ADLSETable.FieldsChosen();
-                UpdatedLastTimestamp := ADLSETableLastTimestamp.GetUpdatedLastTimestamp(Rec."Table ID");
-                DeletedRecordLastEntryNo := ADLSETableLastTimestamp.GetDeletedLastEntryNo(Rec."Table ID");
-            end else begin
+        if ADLSETable.Get(Rec."Table ID") then
+            if TableMetadata.Get(Rec."Table ID") then
+                NumberFieldsChosenValue := ADLSETable.FieldsChosen()
+            else
                 NumberFieldsChosenValue := 0;
-                UpdatedLastTimestamp := 0;
-                DeletedRecordLastEntryNo := 0;
-                Rec.Modify(true);
-            end;
-            ADLSERun.GetLastRunDetailsPerCompany(Rec."Table ID", LastRunState, LastStarted, LastRunError, Rec."Sync Company");
-        end;
+        Session.StartSession(NewSessionId, Codeunit::"ADLSE Company Run", Rec."Sync Company", Rec);
     end;
 
     var
-        UpdatedLastTimestamp: BigInteger;
-        DeletedRecordLastEntryNo: BigInteger;
-        LastRunState: Enum "ADLSE Run State";
-        LastStarted: DateTime;
-        LastRunError: Text[2048];
         NumberFieldsChosenValue: Integer;
 }
