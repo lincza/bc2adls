@@ -89,7 +89,7 @@ codeunit 82561 "ADLSE Execute"
         // check if anything exported at all
         if (UpdatedLastTimestamp > OldUpdatedLastTimestamp) or (DeletedLastEntryNo > OldDeletedLastEntryNo) then begin
             // update the last timestamps of the record
-            if not ADLSETableLastTimestamp.TrySaveUpdatedLastTimestamp(Rec."Table ID", UpdatedLastTimestamp, EmitTelemetry) then begin
+            if not ADLSETableLastTimestamp.TrySaveUpdatedLastTimestamp(Rec."Table ID", UpdatedLastModifiedDateTime, EmitTelemetry) then begin
                 SetStateFinished(Rec, TableCaption);
                 exit;
             end;

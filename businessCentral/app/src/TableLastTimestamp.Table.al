@@ -90,6 +90,16 @@ table 82564 "ADLSE Table Last Timestamp"
             ADLSEExecution.Log('ADLSE-032', StrSubstNo(SaveUpsertLastTimestampFailedErr, ADLSEUtil.GetTableCaption(TableID)), Verbosity::Error);
     end;
 
+    procedure TrySaveUpdatedLastTimestamp(TableID: Integer; Timestamp: DateTime; EmitTelemetry: Boolean) Result: Boolean
+    var
+        ADLSEExecution: Codeunit "ADLSE Execution";
+        ADLSEUtil: Codeunit "ADLSE Util";
+    begin
+        Result := RecordUpsertLastTimestamp(TableID, Timestamp);
+        if EmitTelemetry and (not Result) then
+            ADLSEExecution.Log('ADLSE-032', StrSubstNo(SaveUpsertLastTimestampFailedErr, ADLSEUtil.GetTableCaption(TableID)), Verbosity::Error);
+    end;
+
     procedure SaveUpdatedLastTimestamp(TableID: Integer; Timestamp: BigInteger)
     var
         ADLSEUtil: Codeunit "ADLSE Util";
@@ -99,6 +109,11 @@ table 82564 "ADLSE Table Last Timestamp"
     end;
 
     local procedure RecordUpsertLastTimestamp(TableID: Integer; Timestamp: BigInteger): Boolean
+    begin
+        exit(RecordLastTimestamp(TableID, Timestamp, true));
+    end;
+
+    local procedure RecordUpsertLastTimestamp(TableID: Integer; Timestamp: DateTime): Boolean
     begin
         exit(RecordLastTimestamp(TableID, Timestamp, true));
     end;
@@ -144,10 +159,36 @@ table 82564 "ADLSE Table Last Timestamp"
         end;
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"ADLSE Table Last Timestamp", 'rmi')]
+    local procedure RecordLastTimestamp(TableID: Integer; Timestamp: DateTime; Upsert: Boolean): Boolean
+    var
+        Company: Text;
+    begin
+        Company := GetCompanyNameToLookFor(TableID);
+        if Rec.Get(Company, TableID) then begin
+            ChangeLastTimestamp(Timestamp, Upsert);
+            exit(Rec.Modify(true));
+        end else begin
+            Rec.Init();
+            Rec."Company Name" := CopyStr(Company, 1, 30);
+            Rec."Table ID" := TableID;
+            ChangeLastTimestamp(Timestamp, Upsert);
+            exit(Rec.Insert(true));
+        end;
+    end;
+
     local procedure ChangeLastTimestamp(Timestamp: BigInteger; Upsert: Boolean)
     begin
         if Upsert then
             Rec."Updated Last Timestamp" := Timestamp
+        else
+            Rec."Deleted Last Entry No." := Timestamp;
+    end;
+
+    local procedure ChangeLastTimestamp(Timestamp: DateTime; Upsert: Boolean)
+    begin
+        if Upsert then
+            Rec."Last Modified DateTime" := Timestamp
         else
             Rec."Deleted Last Entry No." := Timestamp;
     end;
