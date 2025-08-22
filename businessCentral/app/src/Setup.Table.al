@@ -240,6 +240,13 @@ table 82560 "ADLSE Setup"
             ToolTip = 'Specifies if the captions of Tables will be used instead of names.';
             InitValue = false;
         }
+        field(16; "Use Last Modified DateTime"; Boolean)
+        {
+            DataClassification = CustomerContent;
+            Caption = 'Use Last Modified DateTime';
+            ToolTip = 'Specifies if the Last Modified DateTime will be used in the export. (Instead Of RowVersion)';
+            InitValue = false;
+        }
     }
 
     keys

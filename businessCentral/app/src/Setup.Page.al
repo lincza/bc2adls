@@ -158,6 +158,9 @@ page 82560 "ADLSE Setup"
                     {
                         Lookup = true;
                     }
+                    field("Use Last Modified DateTime"; Rec."Use Last Modified DateTime")
+                    {
+                    }
                 }
             }
             part(Tables; "ADLSE Setup Tables")

@@ -12,8 +12,12 @@ codeunit 82562 "ADLSE Communication"
         DataBlobBlockIDs: List of [Text];
         BlobContentLength: Integer;
         LastRecordOnPayloadTimeStamp: BigInteger;
+        LastRecordOnPayloadmodifiedDateTime: DateTime;
+
         Payload: TextBuilder;
         LastFlushedTimeStamp: BigInteger;
+        LastFlushedModifiedDateTime: DateTime;
+
         NumberOfFlushes: Integer;
         EntityName: Text;
         EntityJson: JsonObject;
@@ -90,6 +94,30 @@ codeunit 82562 "ADLSE Communication"
         if EmitTelemetry then begin
             CustomDimensions.Add('Entity', EntityName);
             CustomDimensions.Add('Last flushed time stamp', Format(LastFlushedTimeStampValue));
+            ADLSEExecution.Log('ADLSE-041', 'Initialized ADLSE Communication to write to the lake.', Verbosity::Verbose);
+        end;
+    end;
+
+    procedure Init(TableIDValue: Integer; FieldIdListValue: List of [Integer]; LastFlushedModifiedDateTimeValue: DateTime; EmitTelemetryValue: Boolean)
+    var
+        ADLSESetup: Record "ADLSE Setup";
+        ADLSEUtil: Codeunit "ADLSE Util";
+        ADLSEExecution: Codeunit "ADLSE Execution";
+        CustomDimensions: Dictionary of [Text, Text];
+    begin
+        TableID := TableIDValue;
+        FieldIdList := FieldIdListValue;
+
+        ADLSECredentials.Init();
+        EntityName := ADLSEUtil.GetDataLakeCompliantTableName(TableID);
+
+        LastFlushedModifiedDateTime := LastFlushedModifiedDateTimeValue;
+        ADLSESetup.GetSingleton();
+        MaxSizeOfPayloadMiB := ADLSESetup.MaxPayloadSizeMiB;
+        EmitTelemetry := EmitTelemetryValue;
+        if EmitTelemetry then begin
+            CustomDimensions.Add('Entity', EntityName);
+            CustomDimensions.Add('Last flushed modified Datatime', Format(LastFlushedModifiedDateTime));
             ADLSEExecution.Log('ADLSE-041', 'Initialized ADLSE Communication to write to the lake.', Verbosity::Verbose);
         end;
     end;
@@ -236,6 +264,42 @@ codeunit 82562 "ADLSE Communication"
         LastTimestampExported := CollectAndSendRecord(RecordRef, RecordTimeStamp, DataBlobCreated, Deletes);
     end;
 
+    [TryFunction]
+    procedure TryCollectAndSendRecordModifiedDateTime(RecordRef: RecordRef; RecordTimeStamp: DateTime; var LastTimestampExported: DateTime; Deletes: Boolean)
+    var
+        DataBlobCreated: Boolean;
+    begin
+        ClearLastError();
+        DataBlobCreated := CreateDataBlob();
+        LastTimestampExported := CollectAndSendRecord(RecordRef, RecordTimeStamp, DataBlobCreated, Deletes);
+    end;
+
+    local procedure CollectAndSendRecord(RecordRef: RecordRef; RecordTimeStamp: DateTime; DataBlobCreated: Boolean; Deletes: Boolean) LastTimestampExported: DateTime
+    var
+        ADLSEUtil: Codeunit "ADLSE Util";
+        RecordPayLoad: Text;
+    begin
+        if NumberOfFlushes = 50000 then // https://docs.microsoft.com/en-us/rest/api/storageservices/put-block#remarks
+            Error(CannotAddedMoreBlocksErr);
+
+        // Add headers into the existing Payload
+        if (DataBlobCreated) and (Payload.Length() <> 0) then
+            Payload.Insert(1, ADLSEUtil.CreateCsvHeader(RecordRef, FieldIdList));
+
+        RecordPayLoad := ADLSEUtil.CreateCsvPayload(RecordRef, FieldIdList, Payload.Length() = 0, Deletes);
+        // check if payload exceeds the limit
+        if Payload.Length() + StrLen(RecordPayLoad) + 2 > MaxPayloadSize() then begin // the 2 is to account for new line characters
+            if Payload.Length() = 0 then
+                // the record alone exceeds the max payload size
+                Error(SingleRecordTooLargeErr);
+            FlushPayload();
+        end;
+        LastTimestampExported := LastFlushedModifiedDateTime;
+
+        Payload.Append(RecordPayLoad);
+        LastRecordOnPayloadModifiedDateTime := RecordTimeStamp;
+    end;
+
     local procedure CollectAndSendRecord(RecordRef: RecordRef; RecordTimeStamp: BigInteger; DataBlobCreated: Boolean; Deletes: Boolean) LastTimestampExported: BigInteger
     var
         ADLSEUtil: Codeunit "ADLSE Util";
@@ -269,11 +333,25 @@ codeunit 82562 "ADLSE Communication"
         LastTimestampExported := Finish();
     end;
 
+    [TryFunction]
+    procedure TryFinish(var LastTimestampExported: DateTime)
+    begin
+        ClearLastError();
+        LastTimestampExported := FinishDateTime();
+    end;
+
     local procedure Finish() LastTimestampExported: BigInteger
     begin
         FlushPayload();
 
         LastTimestampExported := LastFlushedTimeStamp;
+    end;
+
+    local procedure FinishDateTime() LastTimestampExported: DateTime
+    begin
+        FlushPayload();
+
+        LastTimestampExported := LastFlushedModifiedDateTime;
     end;
 
     local procedure MaxPayloadSize(): Integer
@@ -328,8 +406,10 @@ codeunit 82562 "ADLSE Communication"
         end;
 
         LastFlushedTimeStamp := LastRecordOnPayloadTimeStamp;
+        LastFlushedModifiedDateTime := LastRecordOnPayloadmodifiedDateTime;
         Payload.Clear();
         LastRecordOnPayloadTimeStamp := 0;
+        LastRecordOnPayloadmodifiedDateTime := 0DT;
         NumberOfFlushes += 1;
 
         ADLSE.OnTableExported(TableID, LastFlushedTimeStamp);

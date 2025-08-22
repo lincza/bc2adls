@@ -222,6 +222,7 @@ table 82561 "ADLSE Table"
                     ADLSETableLastTimestamp.SetRange("Table ID", rec."Table ID");
                     ADLSETableLastTimestamp.ModifyAll("Updated Last Timestamp", 0);
                     ADLSETableLastTimestamp.ModifyAll("Deleted Last Entry No.", 0);
+                    ADLSETableLastTimestamp.ModifyAll("Last Modified DateTime", 0DT);
                     ADLSETableLastTimestamp.SetRange("Table ID");
                 end;
                 ADLSEDeletedRecord.SetRange("Table ID", Rec."Table ID");

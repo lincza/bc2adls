@@ -31,7 +31,12 @@ table 82564 "ADLSE Table Last Timestamp"
             Editable = false;
             Caption = 'Last timestamp exported for an updated record';
         }
-        field(4; "Deleted Last Entry No."; BigInteger)
+        field(4; "Last Modified DateTime"; DateTime)
+        {
+            Editable = false;
+            Caption = 'Last modified date and time';
+        }
+        field(5; "Deleted Last Entry No."; BigInteger)
         {
             Editable = false;
             Caption = 'Entry no. of the last deleted record';
@@ -60,6 +65,12 @@ table 82564 "ADLSE Table Last Timestamp"
     begin
         if ExistsUpdatedLastTimestamp(TableID) then
             exit(Rec."Updated Last Timestamp");
+    end;
+
+    procedure GetUpdatedLastModifiedDateTime(TableID: Integer): DateTime
+    begin
+        if ExistsUpdatedLastTimestamp(TableID) then
+            exit(Rec."Last Modified DateTime");
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"ADLSE Table Last Timestamp", 'r')]
