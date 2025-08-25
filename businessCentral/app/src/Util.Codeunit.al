@@ -476,9 +476,9 @@ codeunit 82564 "ADLSE Util"
                     SystemCreatedAtNoFieldref := RecordRef.Field(RecordRef.SystemCreatedAtNo());
                     SystemModifiedAtNoFieldref := RecordRef.Field(RecordRef.SystemModifiedAtNo());
                     if SystemCreatedAtNoFieldref.Value() = SystemModifiedAtNoFieldref.Value() then
-                        Payload.Append(StrSubstNo(CommaPrefixedTok, '0'))
+                        Payload.Append(StrSubstNo(CommaPrefixedTok, '4'))
                     else
-                        Payload.Append(StrSubstNo(CommaPrefixedTok, '1'));
+                        Payload.Append(StrSubstNo(CommaPrefixedTok, '4'));
                 end;
 
         Payload.AppendLine();
