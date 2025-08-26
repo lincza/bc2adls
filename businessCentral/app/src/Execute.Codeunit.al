@@ -261,7 +261,6 @@ codeunit 82561 "ADLSE Execute"
         ADLSESetup: Record "ADLSE Setup";
         ADLSETable: Record "ADLSE Table";
         ADLSESeekData: Report "ADLSE Seek Data";
-        ADLSETable: Record "ADLSE Table";
         ADLSEUtil: Codeunit "ADLSE Util";
         ADLSEExecution: Codeunit "ADLSE Execution";
         RecordRef: RecordRef;
