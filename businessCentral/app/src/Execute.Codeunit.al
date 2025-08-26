@@ -259,6 +259,7 @@ codeunit 82561 "ADLSE Execute"
         ADLSEDeletedRecord: Record "ADLSE Deleted Record";
         ADLSESetup: Record "ADLSE Setup";
         ADLSESeekData: Report "ADLSE Seek Data";
+        ADLSETable: Record "ADLSE Table";
         ADLSEUtil: Codeunit "ADLSE Util";
         ADLSEExecution: Codeunit "ADLSE Execution";
         RecordRef: RecordRef;
@@ -275,6 +276,12 @@ codeunit 82561 "ADLSE Execute"
 
         ADLSEDeletedRecord.ReadIsolation := ADLSEDeletedRecord.ReadIsolation::ReadCommitted;
         if ADLSESeekData.FindRecords(ADLSEDeletedRecord) then begin
+            //Addin the number when open mirroring is used
+            if (ADLSESetup."Storage Type" = ADLSESetup."Storage Type"::"Open Mirroring") then begin
+                ADLSETable.Get(TableID);
+                ADLSETable.ExportFileNumber := ADLSETable.ExportFileNumber + 1;
+                ADLSETable.Modify(true);
+            end;
             RecordRef.Open(ADLSEDeletedRecord."Table ID");
 
             FixDeletedRecordThatAreInTable(ADLSEDeletedRecord);
