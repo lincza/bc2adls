@@ -79,6 +79,28 @@ page 82565 "ADLSE Company Setup Tables"
     {
         area(Processing)
         {
+
+            action(Refresh)
+            {
+                Image = Refresh;
+                ApplicationArea = All;
+                Caption = 'Refresh';
+                ToolTip = 'Refresh all Last Run State';
+                trigger OnAction()
+                var
+                    CurrADLSECompanySetupTable: record "ADLSE Company Setup Table";
+                begin
+                    CurrADLSECompanySetupTable.SetRecFilter();
+                    if Rec.FindSet() then
+                        repeat
+                            RefreshStatus(Rec);
+                        until Rec.Next() < 1;
+                    CurrADLSECompanySetupTable.FindFirst();
+                    Rec.Get(CurrADLSECompanySetupTable."Table ID");
+                    CurrPage.Update();
+                end;
+            }
+
             action(ExportNow)
             {
                 ApplicationArea = All;
@@ -90,11 +112,36 @@ page 82565 "ADLSE Company Setup Tables"
                     ADLSECurrentSession: Record "ADLSE Current Session";
                     NewSessionID: Integer;
                 begin
-                    if Rec.FindSet() then
-                        repeat
+
+
+                    sadkalms
+                    repeat
+
+                        while not Session.IsSessionActive(NewSessionID) do begin
+
                             if ADLSECurrentSession.ChangeCompany(Rec."Sync Company") then
                                 if not ADLSECurrentSession.AreAnySessionsActive() then
                                     Session.StartSession(NewSessionID, Codeunit::"ADLSE Execution", Rec."Sync Company");
+
+
+                        end;
+
+
+
+
+                    until not Session.IsSessionActive(NewSessionID);
+
+
+
+                    if Rec.FindSet() then
+                        repeat
+
+                            if Session.IsSessionActive(NewSessionID) then begin
+
+                            end;
+
+
+
                         until Rec.Next() < 1;
                     CurrPage.Update();
                 end;
@@ -230,6 +277,10 @@ page 82565 "ADLSE Company Setup Tables"
         // }
     }
     trigger OnAfterGetRecord()
+    begin
+    end;
+
+    local procedure RefreshStatus(var Rec: Record "ADLSE Company Setup Table")
     var
         TableMetadata: Record "Table Metadata";
         ADLSETable: Record "ADLSE Table";
