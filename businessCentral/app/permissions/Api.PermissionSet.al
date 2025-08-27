@@ -11,6 +11,7 @@ permissionset 82563 "ADLSE - API"
 
     Permissions = table "ADLSE Setup" = x,
                   tabledata "ADLSE Table" = RMI,
+                  tabledata "ADLSE Company Setup Table" = RMI,
                   tabledata "ADLSE Setup" = R,
                   tabledata "ADLSE Current Session" = R,
                   tabledata "ADLSE Run" = R,
@@ -20,6 +21,7 @@ permissionset 82563 "ADLSE - API"
                   page "ADLSE Field API v12" = X,
                   page "ADLSE CurrentSession API" = X,
                   page "ADLSE Run API v12" = X,
+                  page "ADLSE Company Setup" = x,
                   codeunit "ADLSE External Events Helper" = X,
                   codeunit "ADLSE External Events" = X;
 }

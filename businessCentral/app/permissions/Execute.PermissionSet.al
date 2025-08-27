@@ -12,6 +12,7 @@ permissionset 82561 "ADLSE - Execute"
     Permissions = table "ADLSE Setup" = x,
                   tabledata "ADLSE Setup" = RM,
                   tabledata "ADLSE Table" = RM,
+                  tabledata "ADLSE Company Setup Table" = RM,
                   tabledata "ADLSE Field" = R,
                   tabledata "ADLSE Deleted Record" = R,
                   tabledata "ADLSE Current Session" = RIMD,
