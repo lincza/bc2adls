@@ -1,15 +1,15 @@
 codeunit 82579 "ADLSE Multi Company Export"
 {
     Permissions = tabledata "ADLSE Company Setup Table" = RIMD;
-    TableNo = "ADLSE Company Setup Table";
+    TableNo = "Job Queue Entry";
     trigger OnRun()
     var
         ADLSECompanySetupTable: Record "ADLSE Company Setup Table";
         SessionId: Integer;
     begin
         ADLSECompanySetupTable.Reset();
-        if Rec.HasFilter then
-            ADLSECompanySetupTable.CopyFilters(Rec);
+        if Rec."Parameter String" <> '' then
+            ADLSECompanySetupTable.SetFilter("Sync Company", Rec."Parameter String");
         if ADLSECompanySetupTable.FindSet() then
             repeat
                 Clear(SessionId);
