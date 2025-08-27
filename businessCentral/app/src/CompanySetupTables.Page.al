@@ -35,6 +35,13 @@ page 82565 "ADLSE Company Setup Tables"
                     Caption = '# Fields selected';
                     ToolTip = 'Specifies if any field has been chosen to be exported. Click on Choose Fields action to add fields to export.';
                 }
+                field("No. of Records"; Rec.GetNoOfDatabaseRecordsText())
+                {
+                    Caption = 'No. of Records';
+                    ApplicationArea = All;
+                    Editable = false;
+                    ToolTip = 'Specifies the No. of Records for the table.';
+                }
                 field(Status; Rec."Last Run State")
                 {
                     ApplicationArea = All;
@@ -109,40 +116,25 @@ page 82565 "ADLSE Company Setup Tables"
                 Image = Start;
                 trigger OnAction()
                 var
-                    ADLSECurrentSession: Record "ADLSE Current Session";
                     NewSessionID: Integer;
                 begin
-
-
-                    sadkalms
-                    repeat
-
-                        while not Session.IsSessionActive(NewSessionID) do begin
-
-                            if ADLSECurrentSession.ChangeCompany(Rec."Sync Company") then
-                                if not ADLSECurrentSession.AreAnySessionsActive() then
-                                    Session.StartSession(NewSessionID, Codeunit::"ADLSE Execution", Rec."Sync Company");
-
-
-                        end;
-
-
-
-
-                    until not Session.IsSessionActive(NewSessionID);
-
-
-
-                    if Rec.FindSet() then
-                        repeat
-
-                            if Session.IsSessionActive(NewSessionID) then begin
-
-                            end;
-
-
-
-                        until Rec.Next() < 1;
+                    Session.StartSession(NewSessionID, Codeunit::"ADLSE Multi Company Export");
+                    CurrPage.Update();
+                end;
+            }
+            action(ExportSelectedCompanyNow)
+            {
+                ApplicationArea = All;
+                Caption = 'Export Selected Company';
+                ToolTip = 'Starts the export process for the selected company.';
+                Image = Start;
+                trigger OnAction()
+                var
+                    ADLSECompanySetupTable: Record "ADLSE Company Setup Table";
+                    NewSessionID: Integer;
+                begin
+                    SetSelectionFilter(ADLSECompanySetupTable);
+                    Session.StartSession(NewSessionID, Codeunit::"ADLSE Multi Company Export", '', ADLSECompanySetupTable);
                     CurrPage.Update();
                 end;
             }
@@ -280,18 +272,18 @@ page 82565 "ADLSE Company Setup Tables"
     begin
     end;
 
-    local procedure RefreshStatus(var Rec: Record "ADLSE Company Setup Table")
+    local procedure RefreshStatus(var CurrRec: Record "ADLSE Company Setup Table")
     var
         TableMetadata: Record "Table Metadata";
         ADLSETable: Record "ADLSE Table";
         NewSessionId: Integer;
     begin
-        if ADLSETable.Get(Rec."Table ID") then
-            if TableMetadata.Get(Rec."Table ID") then
+        if ADLSETable.Get(CurrRec."Table ID") then
+            if TableMetadata.Get(CurrRec."Table ID") then
                 NumberFieldsChosenValue := ADLSETable.FieldsChosen()
             else
                 NumberFieldsChosenValue := 0;
-        Session.StartSession(NewSessionId, Codeunit::"ADLSE Company Run", Rec."Sync Company", Rec);
+        Session.StartSession(NewSessionId, Codeunit::"ADLSE Company Run", CurrRec."Sync Company", CurrRec);
     end;
 
     var

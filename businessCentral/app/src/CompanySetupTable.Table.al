@@ -89,4 +89,15 @@ table 82572 "ADLSE Company Setup Table"
     begin
     end;
 
+    procedure GetNoOfDatabaseRecordsText(): Text
+    var
+        RecRef: RecordRef;
+    begin
+
+        if Rec."Table ID" = 0 then
+            exit;
+
+        RecRef.Open(Rec."Table ID", false, Rec."Sync Company");
+        exit(Format(RecRef.Count()));
+    end;
 }
