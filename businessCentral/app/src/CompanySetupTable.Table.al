@@ -135,12 +135,16 @@ table 82572 "ADLSE Company Setup Table"
                 end;
             1: // Modify: update existing rows only
                 begin
+
+                    if xSyncCompany = SyncCompany then
+                        exit;
+
                     ADLSECompanySetupTable.SetFilter("Table ID", '<>%1', Rec."Table ID");
                     ADLSECompanySetupTable.SetRange("Sync Company", xSyncCompany);
                     if ADLSECompanySetupTable.FindSet() then
                         repeat
                             if RenameADLSECompanySetupTable.Get(ADLSECompanySetupTable."Table ID", ADLSECompanySetupTable."Sync Company") then
-                                RenameADLSECompanySetupTable.Rename(Rec."Table ID", SyncCompany);
+                                RenameADLSECompanySetupTable.Rename(ADLSECompanySetupTable."Table ID", SyncCompany);
                         until ADLSECompanySetupTable.Next() < 1;
                 end;
         end;
