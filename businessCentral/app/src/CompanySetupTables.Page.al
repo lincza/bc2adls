@@ -96,7 +96,7 @@ page 82565 "ADLSE Company Setup Tables"
                         repeat
                             RefreshStatus(CurrADLSECompanySetupTable);
                         until CurrADLSECompanySetupTable.Next() < 1;
-                    CurrPage.Update();
+                    CurrPage.Update(true);
                 end;
             }
 

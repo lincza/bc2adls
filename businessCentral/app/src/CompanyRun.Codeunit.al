@@ -17,6 +17,6 @@ codeunit 82578 "ADLSE Company Run"
             Rec."Last Timestamp Deleted" := 0;
         end;
         ADLSERun.GetLastRunDetails(Rec."Table ID", Rec."Last Run State", Rec."Last Started", Rec."Last Error");
-        Rec.Modify(true);
+        Rec.Modify(false);
     end;
 }
