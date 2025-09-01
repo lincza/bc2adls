@@ -13,16 +13,6 @@ page 82565 "ADLSE Company Setup Tables"
         {
             repeater(Control1)
             {
-                field("Table ID"; Rec."Table ID")
-                {
-                    ApplicationArea = All;
-                    ToolTip = 'Specifies the internal ID of the table to export.';
-                }
-                field("Table Caption"; Rec."Table Caption")
-                {
-                    ApplicationArea = All;
-                    ToolTip = 'Shows the caption of the table to export.';
-                }
                 field("Sync Company"; Rec."Sync Company")
                 {
                     ApplicationArea = All;
