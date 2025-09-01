@@ -93,17 +93,19 @@ page 82565 "ADLSE Company Setup Tables"
                 ApplicationArea = All;
                 Caption = 'Refresh';
                 ToolTip = 'Refresh all Last Run State';
+                Promoted = true;
+                PromotedIsBig = true;
+                PromotedOnly = true;
+                PromotedCategory = Process;
+
                 trigger OnAction()
                 var
                     CurrADLSECompanySetupTable: record "ADLSE Company Setup Table";
                 begin
-                    CurrADLSECompanySetupTable.SetRecFilter();
-                    if Rec.FindSet() then
+                    if CurrADLSECompanySetupTable.FindSet() then
                         repeat
-                            RefreshStatus(Rec);
-                        until Rec.Next() < 1;
-                    CurrADLSECompanySetupTable.FindFirst();
-                    Rec.Get(CurrADLSECompanySetupTable."Table ID");
+                            RefreshStatus(CurrADLSECompanySetupTable);
+                        until CurrADLSECompanySetupTable.Next() < 1;
                     CurrPage.Update();
                 end;
             }
@@ -131,10 +133,23 @@ page 82565 "ADLSE Company Setup Tables"
                 trigger OnAction()
                 var
                     ADLSECompanySetupTable: Record "ADLSE Company Setup Table";
+                    TempJobQueueEntry: Record "Job Queue Entry" temporary;
                     NewSessionID: Integer;
+                    FilterString: Text;
                 begin
                     SetSelectionFilter(ADLSECompanySetupTable);
-                    Session.StartSession(NewSessionID, Codeunit::"ADLSE Multi Company Export", '', ADLSECompanySetupTable);
+                    if ADLSECompanySetupTable.FindSet() then
+                        repeat
+                            if not FilterString.Contains(ADLSECompanySetupTable."Sync Company") then
+                                if FilterString = '' then
+                                    FilterString := ADLSECompanySetupTable."Sync Company"
+                                else
+                                    FilterString := FilterString + '|' + ADLSECompanySetupTable."Sync Company";
+                        until ADLSECompanySetupTable.Next() < 1;
+                    TempJobQueueEntry.Init();
+                    TempJobQueueEntry."Parameter String" := CopyStr(FilterString, 1, MaxStrLen(TempJobQueueEntry."Parameter String"));
+                    TempJobQueueEntry.Insert(true);
+                    Session.StartSession(NewSessionID, Codeunit::"ADLSE Multi Company Export", '', TempJobQueueEntry);
                     CurrPage.Update();
                 end;
             }
