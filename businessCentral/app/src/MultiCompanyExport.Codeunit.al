@@ -13,11 +13,12 @@ codeunit 82579 "ADLSE Multi Company Export"
         if ADLSECompanySetupTable.FindSet() then
             repeat
                 Clear(SessionId);
-                session.StartSession(SessionId, Codeunit::"ADLSE Execution", ADLSECompanySetupTable."Sync Company");
-                repeat
-                    Sleep(5000);
-                until not Session.IsSessionActive(SessionId);
-                Commit();// Commit after each company is done. To prevent rollback of everything
+                if session.StartSession(SessionId, Codeunit::"ADLSE Execution", ADLSECompanySetupTable."Sync Company") then begin
+                    repeat
+                        Sleep(10000);
+                    until not Session.IsSessionActive(SessionId);
+                    Commit();// Commit after each company is done. To prevent rollback of everything
+                end;
             until ADLSECompanySetupTable.Next() = 0;
     end;
 

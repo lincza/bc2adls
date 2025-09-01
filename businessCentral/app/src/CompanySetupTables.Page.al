@@ -93,6 +93,11 @@ page 82565 "ADLSE Company Setup Tables"
                 ApplicationArea = All;
                 Caption = 'Refresh';
                 ToolTip = 'Refresh all Last Run State';
+                Promoted = true;
+                PromotedIsBig = true;
+                PromotedOnly = true;
+                PromotedCategory = Process;
+
                 trigger OnAction()
                 var
                     CurrADLSECompanySetupTable: record "ADLSE Company Setup Table";
