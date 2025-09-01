@@ -96,6 +96,10 @@ page 82566 "ADLSE Company Setup"
                 ToolTip = 'Set the selected tables to export all of its data again.';
                 Image = ResetStatus;
                 Enabled = NoExportInProgress;
+                Promoted = true;
+                PromotedIsBig = true;
+                PromotedOnly = true;
+                PromotedCategory = Process;
 
                 trigger OnAction()
                 var
