@@ -9,7 +9,9 @@ codeunit 82579 "ADLSE Multi Company Export"
     begin
         ADLSECompanySetupTable.Reset();
         if Rec."Parameter String" <> '' then
-            ADLSECompanySetupTable.SetFilter("Sync Company", Rec."Parameter String");
+            ADLSECompanySetupTable.SetFilter("Sync Company", Rec."Parameter String")
+        else
+            ADLSECompanySetupTable.SetFilter("Sync Company", '%1', GetDistinctCompanyNames());
         if ADLSECompanySetupTable.FindSet() then
             repeat
                 Clear(SessionId);
@@ -20,6 +22,21 @@ codeunit 82579 "ADLSE Multi Company Export"
                     Commit();// Commit after each company is done. To prevent rollback of everything
                 end;
             until ADLSECompanySetupTable.Next() = 0;
+    end;
+
+    local procedure GetDistinctCompanyNames(): Text
+    var
+        ADLSECompanySetupTable: Record "ADLSE Company Setup Table";
+        CompanyNames: Text;
+    begin
+        if ADLSECompanySetupTable.FindSet() then
+            repeat
+                if not CompanyNames.Contains(ADLSECompanySetupTable."Sync Company") then
+                    if CompanyNames = '' then
+                        CompanyNames := ADLSECompanySetupTable."Sync Company"
+                    else
+                        CompanyNames := CompanyNames + '|' + ADLSECompanySetupTable."Sync Company";
+            until ADLSECompanySetupTable.Next() < 1;
     end;
 
 }

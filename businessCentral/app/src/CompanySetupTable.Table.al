@@ -33,15 +33,6 @@ table 82572 "ADLSE Company Setup Table"
             Caption = 'Sync Company';
             TableRelation = Company.Name where("Evaluation Company" = const(false));
         }
-        field(30; "Last Sync"; DateTime)
-        {
-            Editable = false;
-        }
-        field(15; ExportFileNumber; Integer)
-        {
-            Caption = 'Export File Number';
-            AllowInCustomizations = Always;
-        }
         field(40; "Updated Last Timestamp"; BigInteger)
         {
             Caption = 'Last timestamp';
@@ -76,17 +67,19 @@ table 82572 "ADLSE Company Setup Table"
     trigger OnInsert()
     var
     begin
-
+        UpsertAllTableIds(0);
     end;
 
     trigger OnDelete()
     var
     begin
+        UpsertAllTableIds(2);
     end;
 
     trigger OnModify()
     var
     begin
+        UpsertAllTableIds(1);
     end;
 
     procedure GetNoOfDatabaseRecordsText(): Text
@@ -99,5 +92,57 @@ table 82572 "ADLSE Company Setup Table"
 
         RecRef.Open(Rec."Table ID", false, Rec."Sync Company");
         exit(Format(RecRef.Count()));
+    end;
+
+    local procedure UpsertAllTableIds(Rowmarker: Integer)
+    var
+        ADLSETable: Record "ADLSE Table";
+        ADLSECompanySetupTable: Record "ADLSE Company Setup Table";
+        RenameADLSECompanySetupTable: Record "ADLSE Company Setup Table";
+        SyncCompany: Text[30];
+        xSyncCompany: Text[30];
+    begin
+        // Rowmarker semantics used here:
+        // 0 = Insert -> add missing rows for this Sync Company across ALL table IDs (do not update existing rows)
+        // 1 = Modify -> update existing rows for this Sync Company across ALL table IDs (do not insert missing rows)
+        // 2 = Delete -> remove ALL rows for this Sync Company across ALL table IDs (except current row already being deleted)
+
+        SyncCompany := Rec."Sync Company";
+        xSyncCompany := xRec."Sync Company";
+        if SyncCompany = '' then
+            exit;
+
+        case Rowmarker of
+            2: // Delete: remove this company entry for all other tables (current one is already being deleted)
+                begin
+                    ADLSECompanySetupTable.Reset();
+                    ADLSECompanySetupTable.SetRange("Sync Company", SyncCompany);
+                    ADLSECompanySetupTable.SetFilter("Table ID", '<>%1', Rec."Table ID");
+                    // Avoid re-entrancy by suppressing triggers
+                    ADLSECompanySetupTable.DeleteAll(false);
+                end;
+
+            0: // Insert: add missing rows only
+                begin
+                    ADLSETable.SetFilter("Table ID", '<>%1', Rec."Table ID");
+                    if ADLSETable.FindSet() then
+                        repeat
+                            ADLSECompanySetupTable.Init();
+                            ADLSECompanySetupTable."Table ID" := ADLSETable."Table ID";
+                            ADLSECompanySetupTable."Sync Company" := SyncCompany;
+                            ADLSECompanySetupTable.Insert(false);
+                        until ADLSETable.Next() = 0;
+                end;
+            1: // Modify: update existing rows only
+                begin
+                    ADLSECompanySetupTable.SetFilter("Table ID", '<>%1', Rec."Table ID");
+                    ADLSECompanySetupTable.SetRange("Sync Company", xSyncCompany);
+                    if ADLSECompanySetupTable.FindSet() then
+                        repeat
+                            if RenameADLSECompanySetupTable.Get(ADLSECompanySetupTable."Table ID", ADLSECompanySetupTable."Sync Company") then
+                                RenameADLSECompanySetupTable.Rename(Rec."Table ID", SyncCompany);
+                        until ADLSECompanySetupTable.Next() < 1;
+                end;
+        end;
     end;
 }
