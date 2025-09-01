@@ -38,27 +38,33 @@ report 82560 "ADLSE Seek Data"
     internal procedure RecordsExist(RecordRef: RecordRef): Boolean
     begin
         OnlyCheckForExists := true;
-        exit(GetResult(RecordRef));
+        exit(not RecordRef.IsEmpty)
+        // exit(GetResult(RecordRef));
     end;
 
     internal procedure FindRecords(RecordRef: RecordRef): Boolean
     begin
         OnlyCheckForExists := false;
-        exit(GetResult(RecordRef));
+        exit(RecordRef.FindSet(false));
+        // exit(GetResult(RecordRef));
     end;
 
     internal procedure RecordsExist(var ADLSEDeletedRecord: Record "ADLSE Deleted Record") Result: Boolean
     begin
-        CurrRecordRef.GetTable(ADLSEDeletedRecord);
-        Result := RecordsExist(CurrRecordRef);
-        CurrRecordRef.SetTable(ADLSEDeletedRecord);
+        Result := not ADLSEDeletedRecord.IsEmpty;
+
+        // CurrRecordRef.GetTable(ADLSEDeletedRecord);
+        // Result := RecordsExist(CurrRecordRef);
+        // CurrRecordRef.SetTable(ADLSEDeletedRecord);
     end;
 
     internal procedure FindRecords(var ADLSEDeletedRecord: Record "ADLSE Deleted Record") Result: Boolean
     begin
-        CurrRecordRef.GetTable(ADLSEDeletedRecord);
-        Result := FindRecords(CurrRecordRef);
-        CurrRecordRef.SetTable(ADLSEDeletedRecord);
+        Result := ADLSEDeletedRecord.FindSet();
+
+        // CurrRecordRef.GetTable(ADLSEDeletedRecord);
+        // Result := FindRecords(CurrRecordRef);
+        // CurrRecordRef.SetTable(ADLSEDeletedRecord);
     end;
 
 }
