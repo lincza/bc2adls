@@ -143,6 +143,7 @@ codeunit 82561 "ADLSE Execute"
         RecordRef: RecordRef;
         TimeStampFieldRef: FieldRef;
     begin
+        RecordRef.ReadIsolation := RecordRef.ReadIsolation::ReadCommitted;
         SetFilterForUpdates(TableID, UpdatedLastTimeStamp, false, RecordRef, TimeStampFieldRef);
         exit(ADLSESeekData.RecordsExist(RecordRef));
     end;
@@ -246,13 +247,13 @@ codeunit 82561 "ADLSE Execute"
         ADLSEDeletedRecord: Record "ADLSE Deleted Record";
         ADLSESeekData: Report "ADLSE Seek Data";
     begin
+        ADLSEDeletedRecord.ReadIsolation := ADLSEDeletedRecord.ReadIsolation::ReadCommitted;
         SetFilterForDeletes(TableID, DeletedLastEntryNo, ADLSEDeletedRecord);
         exit(ADLSESeekData.RecordsExist(ADLSEDeletedRecord));
     end;
 
     local procedure SetFilterForDeletes(TableID: Integer; DeletedLastEntryNo: BigInteger; var ADLSEDeletedRecord: Record "ADLSE Deleted Record")
     begin
-        ADLSEDeletedRecord.ReadIsolation := ADLSEDeletedRecord.ReadIsolation::ReadCommitted;
         ADLSEDeletedRecord.SetView(TimestampAscendingSortViewTxt);
         ADLSEDeletedRecord.SetRange("Table ID", TableID);
         ADLSEDeletedRecord.SetFilter("Entry No.", '>%1', DeletedLastEntryNo);
