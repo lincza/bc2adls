@@ -470,15 +470,6 @@ codeunit 82564 "ADLSE Util"
         // 1- 	Update
         // 2- 	Delete
         // 4-   Upsert
-        //  if not ADLSETableLastTimestamp.ExistsUpdatedLastTimestamp(RecordRef.Number) then begin
-        //     //Because of an reset always 0 is sent for the first time
-        //     //UPDATED -- On reset No record will exist if it is the first Run. (Gets deleted On reset)
-        //     if Deletes then// just a catch deletes To prevent Export to 'Insert' Deletes at All times
-        //         Payload.Append(StrSubstNo(CommaPrefixedTok, '2'))
-        //     else
-        //         Payload.Append(StrSubstNo(CommaPrefixedTok, '4'));
-        // end
-        // else
 
         Payload.AppendLine();
 
