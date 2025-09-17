@@ -59,6 +59,7 @@ codeunit 82566 "ADLSE CDM Util" // Refer Common Data Model https://docs.microsof
         Columns: JsonArray;
         Column: JsonObject;
         SchemaDefinition: JsonObject;
+
     begin
         //Must be systemId and $Company because of the deleted record table
         RecordRef.Open(TableID);
@@ -85,6 +86,13 @@ codeunit 82566 "ADLSE CDM Util" // Refer Common Data Model https://docs.microsof
                 Columns.Add(Column);
             end;
         end;
+        if ADLSESetup."Storage Type" = ADLSESetup."Storage Type"::"Open Mirroring" then
+            if ADLSEUtil.IsTablePerCompany(TableID) then begin
+                Clear(Column);
+                Column.Add('Name', GetCompanyFieldName());
+                Column.Add('DataType', GetCDMDataFormat_String());
+                Columns.Add(Column);
+            end;
 
         SchemaDefinition.Add('Columns', Columns);
         Content.Add('SchemaDefinition', SchemaDefinition);
