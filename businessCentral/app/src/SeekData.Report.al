@@ -60,5 +60,4 @@ report 82560 "ADLSE Seek Data"
         Result := FindRecords(CurrRecordRef);
         CurrRecordRef.SetTable(ADLSEDeletedRecord);
     end;
-
 }
