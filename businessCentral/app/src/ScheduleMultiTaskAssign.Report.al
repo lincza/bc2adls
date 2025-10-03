@@ -1,6 +1,7 @@
 report 82562 "ADLSEScheduleMultiTaskAssign"
 {
     ApplicationArea = Basic, Suite;
+    UsageCategory = Administration;
     Caption = 'Schedule Multi Company Export';
     ProcessingOnly = true;
 
@@ -15,6 +16,10 @@ report 82562 "ADLSEScheduleMultiTaskAssign"
                 JobQueueEntry: Record "Job Queue Entry";
                 ADLSEMultiCompanyExport: Codeunit "ADLSE Multi Company Export";
             begin
+                if CompanyNameFilter <> '' then
+                    ADLSEMultiCompanyExport.SetCompanyFilter(CompanyNameFilter);
+                if TableIdFilter <> '' then
+                    ADLSEMultiCompanyExport.SetTableFilter(TableIdFilter);
                 ADLSEMultiCompanyExport.Run(JobQueueEntry);
             end;
         }
@@ -26,6 +31,60 @@ report 82562 "ADLSEScheduleMultiTaskAssign"
         {
             area(Content)
             {
+                group(Filters)
+                {
+                    Caption = 'Filters';
+                    field(CompanyNameFilter; CompanyNameFilter)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'CompanyName Filter';
+                        ToolTip = 'filter Companies to be exported. Separate multiple entries with | character. Leave empty to include all companies.';
+
+                        trigger OnAssistEdit()
+                        var
+                            ADLSESyncCompanies: Record "ADLSE Sync Companies";
+                            ADLSECompanySetup: Page "ADLSE Company Setup";
+                        begin
+                            ADLSECompanySetup.LookupMode(true);
+                            if ADLSECompanySetup.RunModal() = Action::LookupOK then begin
+                                ADLSECompanySetup.SetSelectionFilter(ADLSESyncCompanies);
+                                if ADLSESyncCompanies.FindSet() then
+                                    repeat
+                                        if CompanyNameFilter = '' then
+                                            CompanyNameFilter := ADLSESyncCompanies."Sync Company"
+                                        else
+                                            CompanyNameFilter := CompanyNameFilter + '|' + ADLSESyncCompanies."Sync Company";
+                                    until ADLSESyncCompanies.Next() < 1;
+                            end;
+                        end;
+
+
+                    }
+                    field(TableIdFilter; TableIdFilter)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Table Id Filter';
+                        ToolTip = 'Filter Table IDs to be exported. Separate multiple entries with | character. Leave empty to include all tables.';
+                        trigger OnAssistEdit()
+                        var
+                            ADLSETable: Record "ADLSE Table";
+                            ADLSESetupTables: Page "ADLSE Setup Tables";
+                        begin
+                            ADLSESetupTables.LookupMode(true);
+                            if ADLSESetupTables.RunModal() = Action::LookupOK then begin
+                                ADLSESetupTables.SetSelectionFilter(ADLSETable);
+                                if ADLSETable.FindSet() then
+                                    repeat
+                                        if TableIdFilter = '' then
+                                            TableIdFilter := Format(ADLSETable."Table ID")
+                                        else
+                                            TableIdFilter := TableIdFilter + '|' + Format(ADLSETable."Table ID");
+                                    until ADLSETable.Next() < 1;
+                            end;
+                        end;
+                    }
+
+                }
                 group(Options)
                 {
                     Caption = 'Options';
@@ -111,6 +170,8 @@ report 82562 "ADLSEScheduleMultiTaskAssign"
     }
 
     var
+        CompanyNameFilter: Text;
+        TableIdFilter: Text;
         Description: Text[30];
         JobCategoryCodeTxt: Label 'ADLSE', Locked = true;
         EarliestStartDateTime: DateTime;

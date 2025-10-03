@@ -2,9 +2,17 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 codeunit 82569 "ADLSE Execution"
 {
+    TableNo = "ADLSE Table";
     trigger OnRun()
+    var
+        ADLSETable: Record "ADLSE Table";
     begin
-        StartExport();
+        if Rec.GetFilter("Table ID") <> '' then begin
+            AdlseTable.SetFilter("Table ID", Rec.GetFilter("Table ID"));
+            StartExportWithFilter(Rec);
+        end
+        else
+            StartExport();
     end;
 
     var
@@ -21,6 +29,14 @@ codeunit 82569 "ADLSE Execution"
         ADLSETable: Record "ADLSE Table";
     begin
         StartExport(ADLSETable);
+    end;
+
+
+    [InherentPermissions(PermissionObjectType::TableData, Database::"ADLSE Table", 'r')]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"ADLSE Field", 'r')]
+    internal procedure StartExportWithFilter(var FilterAdlseTable: Record "ADLSE Table")
+    begin
+        StartExport(FilterAdlseTable);
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"ADLSE Table", 'r')]

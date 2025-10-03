@@ -7,8 +7,11 @@ codeunit 82579 "ADLSE Multi Company Export"
         ADLSETable: Record "ADLSE Table";
         ADLSESyncCompanies: Record "ADLSE Sync Companies";
         ADLSECurrentSession: Record "ADLSE Current Session";
+        ADLSETableFilter: Record "ADLSE Table" temporary;
         SessionId: Integer;
     begin
+        if FilterTable <> '' then
+            ADLSETableFilter.SetFilter("Table ID", FilterTable);
         ADLSESyncCompanies.Reset();
         if CompanyFilters <> '' then
             ADLSESyncCompanies.SetFilter("Sync Company", '%1', CompanyFilters);
@@ -17,7 +20,7 @@ codeunit 82579 "ADLSE Multi Company Export"
         if ADLSESyncCompanies.FindSet(false) then
             repeat
                 Clear(SessionId);
-                if session.StartSession(SessionId, Codeunit::"ADLSE Execution", ADLSESyncCompanies."Sync Company") then begin
+                if session.StartSession(SessionId, Codeunit::"ADLSE Execution", ADLSESyncCompanies."Sync Company", ADLSETableFilter) then begin
                     ADLSECurrentSession.ChangeCompany(ADLSESyncCompanies."Sync Company");
                     repeat
                         Sleep(10000);
@@ -29,6 +32,7 @@ codeunit 82579 "ADLSE Multi Company Export"
 
 
     var
+        FilterTable: Text;
         CompanyFilters: text;
         ExportStartedTxt: Label 'Data export started for %1 tables in %2 Companies. Please refresh this page to see the latest export state for the tables. Only those tables that either have had changes since the last export or failed to export last time have been included. The tables for which the exports could not be started have been queued up for later.', Comment = '%1 = Total number of tables to start the export for. %2 = Total number of companies to export for.';
 
@@ -57,5 +61,10 @@ codeunit 82579 "ADLSE Multi Company Export"
     procedure SetCompanyFilter(Filter: Text)
     begin
         CompanyFilters := Filter;
+    end;
+
+    procedure SetTableFilter(FilterSetting: Text)
+    begin
+        FilterTable := FilterSetting;
     end;
 }
