@@ -9,7 +9,7 @@ codeunit 82569 "ADLSE Execution"
     begin
         if Rec.GetFilter("Table ID") <> '' then begin
             AdlseTable.SetFilter("Table ID", Rec.GetFilter("Table ID"));
-            StartExportWithFilter(Rec);
+            StartExportWithFilter(AdlseTable);
         end
         else
             StartExport();
