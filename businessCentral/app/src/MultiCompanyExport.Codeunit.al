@@ -14,7 +14,7 @@ codeunit 82579 "ADLSE Multi Company Export"
             ADLSETableFilter.SetFilter("Table ID", FilterTable);
         ADLSESyncCompanies.Reset();
         if CompanyFilters <> '' then
-            ADLSESyncCompanies.SetFilter("Sync Company", '%1', CompanyFilters);
+            ADLSESyncCompanies.SetFilter("Sync Company", CompanyFilters);
         if GuiAllowed then
             Message(ExportStartedTxt, ADLSETable.Count, ADLSESyncCompanies.Count());
         if ADLSESyncCompanies.FindSet(false) then
