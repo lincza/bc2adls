@@ -68,18 +68,30 @@ report 82562 "ADLSEScheduleMultiTaskAssign"
                         trigger OnAssistEdit()
                         var
                             ADLSETable: Record "ADLSE Table";
-                            ADLSESetupTables: Page "ADLSE Setup Tables";
+                            AllObjWithCaption: Record AllObjWithCaption;
+                            TableObjects: Page "Table Objects";
+                            EntityFilter: Text;
                         begin
-                            ADLSESetupTables.LookupMode(true);
-                            if ADLSESetupTables.RunModal() = Action::LookupOK then begin
-                                ADLSESetupTables.SetSelectionFilter(ADLSETable);
-                                if ADLSETable.FindSet() then
+                            if ADLSETable.FindSet(false) then
+                                repeat
+                                    if EntityFilter = '' then
+                                        EntityFilter := Format(ADLSETable."Table ID")
+                                    else
+                                        EntityFilter := EntityFilter + '|' + Format(ADLSETable."Table ID");
+                                until ADLSETable.Next() < 1;
+                            AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::Table);
+                            AllObjWithCaption.SetFilter("Object ID", EntityFilter);
+                            TableObjects.SetTableView(AllObjWithCaption);
+                            TableObjects.LookupMode(true);
+                            if TableObjects.RunModal() = Action::LookupOK then begin
+                                TableObjects.SetSelectionFilter(AllObjWithCaption);
+                                if AllObjWithCaption.FindSet(false) then
                                     repeat
                                         if TableIdFilter = '' then
-                                            TableIdFilter := Format(ADLSETable."Table ID")
+                                            TableIdFilter := Format(AllObjWithCaption."Object ID")
                                         else
-                                            TableIdFilter := TableIdFilter + '|' + Format(ADLSETable."Table ID");
-                                    until ADLSETable.Next() < 1;
+                                            TableIdFilter := TableIdFilter + '|' + Format(AllObjWithCaption."Object ID");
+                                    until AllObjWithCaption.Next() < 1;
                             end;
                         end;
                     }
