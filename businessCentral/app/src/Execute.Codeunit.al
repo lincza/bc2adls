@@ -175,6 +175,7 @@ codeunit 82561 "ADLSE Execute"
         ErrorMessage: ErrorInfo;
         CurrentDateTime: DateTime;
         RecordModifiedAt: DateTime;
+        UpperLimitint: Integer;
     begin
         ADLSESetup.GetSingleton();
 
@@ -203,7 +204,7 @@ codeunit 82561 "ADLSE Execute"
 
             // This represent (Unix) Epoch with appending the Timezone Offset, so when converting this to UTC it wil be exactly 01 Jan 1900
             UtcEpochZero := ADLSEUtil.GetUtcEpochWithTimezoneOffset();
-
+            UpperLimitint := 0;
             repeat
                 // Records created before SystemCreatedAt field was introduced, have null values. Initialize with 01 Jan 1900
                 FieldRef := RecordRef.Field(RecordRef.SystemCreatedAtNo());
@@ -219,6 +220,7 @@ codeunit 82561 "ADLSE Execute"
                 if ((ADLSESetup."Delayed Export" = 0) or (CurrentDateTime - RecordModifiedAt > (ADLSESetup."Delayed Export" * 1000))) then begin
 
                     if ADLSECommunication.TryCollectAndSendRecord(RecordRef, TimeStampFieldRef.Value(), FlushedTimeStamp, false) then begin
+                        UpperLimitint += 1;
                         if UpdatedLastTimeStamp < FlushedTimeStamp then // sample the highest timestamp, to cater to the eventuality that the records do not appear sorted per timestamp
                             UpdatedLastTimeStamp := FlushedTimeStamp;
                     end else
@@ -229,7 +231,7 @@ codeunit 82561 "ADLSE Execute"
                         ADLSEExecution.Log('ADLSE-023', 'Skipping record in delay window', Verbosity::Normal, CustomDimensions);
                     end;
 
-            until RecordRef.Next() = 0;
+            until (RecordRef.Next() = 0) OR (UpperLimitint >= 10000000);
 
             if ADLSECommunication.TryFinish(FlushedTimeStamp) then begin
                 if UpdatedLastTimeStamp < FlushedTimeStamp then // sample the highest timestamp, to cater to the eventuality that the records do not appear sorted per timestamp
