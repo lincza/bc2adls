@@ -256,7 +256,8 @@ codeunit 82564 "ADLSE Util"
             Field.Type::Integer,
             Field.Type::Option,
             Field.Type::Text,
-            Field.Type::Time:
+            Field.Type::Time,
+            Field.Type::RecordID:
                 exit;
         end;
         Error(FieldTypeNotSupportedErr, Field."Field Caption", Field.Type);
@@ -302,6 +303,8 @@ codeunit 82564 "ADLSE Util"
             FieldRef.Type::Guid,
             FieldRef.Type::Text:
                 exit(ConvertStringToText(FieldRef.Value()));
+            FieldRef.Type::RecordId:
+                exit(ConvertRecordIDToText(FieldRef.Value()));
             else
                 Error(FieldTypeNotSupportedErr, FieldRef.Name(), FieldRef.Type);
         end;
@@ -327,6 +330,11 @@ codeunit 82564 "ADLSE Util"
         Val := Val.Replace('\', '\\'); // escape the escape character
         Val := Val.Replace('"', ''''); // escape the quote character
         exit(StrSubstNo(QuotedTextTok, Val));
+    end;
+
+    procedure ConvertRecordIDToText(Val: Variant): Text
+    begin
+        exit(Format(Val));
     end;
 
     procedure ConvertNumberToText(Val: Integer): Text
