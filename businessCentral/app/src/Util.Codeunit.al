@@ -325,7 +325,7 @@ codeunit 82564 "ADLSE Util"
         Val := Val.Replace(Char10, ' '); // remove the Line feed - '\n' character
         Val := Val.Replace(Char13, ' '); // remove the Carriage return - '\r' character
         Val := Val.Replace('\', '\\'); // escape the escape character
-        Val := Val.Replace('"', '""'); // escape the quote character
+        Val := Val.Replace('"', ''''); // escape the quote character
         exit(StrSubstNo(QuotedTextTok, Val));
     end;
 
