@@ -192,6 +192,20 @@ page 82566 "ADLSE Company Setup"
                     ADLSEExecution.ScheduleMultiExport();
                 end;
             }
+            action(FixIncorrectData)
+            {
+                ApplicationArea = All;
+                Caption = 'Fix incorrect data';
+                ToolTip = 'Fixes incorrect tables and fields in the setup. This should be done if you have deleted some tables and fields and you cannot disable them.';
+                Image = Error;
+
+                trigger OnAction()
+                var
+                    ADLSESetup: Codeunit "ADLSE Setup";
+                begin
+                    ADLSESetup.FixIncorrectData();
+                end;
+            }
 
             action(ClearDeletedRecordsList)
             {
