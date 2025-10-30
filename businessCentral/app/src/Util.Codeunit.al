@@ -181,16 +181,21 @@ codeunit 82564 "ADLSE Util"
     var
         ADLSESetup: Record "ADLSE Setup";
         TableFields: Record Field;
+        RealTableCaptionFields: Record Field;
         RecRef: RecordRef;
         NameToUse: Text;
     begin
         ADLSESetup.GetSingleton();
-        if ADLSESetup."Use Field Captions" then
-            NameToUse := FieldRef.Caption()
+        RecRef := FieldRef.Record();
+        if ADLSESetup."Use Field Captions" then begin
+            if RealTableCaptionFields.Get(RecRef.Number, FieldRef.Number) then
+                NameToUse := RealTableCaptionFields."Field Caption"
+            else
+                NameToUse := FieldRef.Caption;
+        end
         else
             NameToUse := FieldRef.Name();
         if ADLSESetup."Use IDs for Duplicates Only" then begin
-            RecRef := FieldRef.Record();
             TableFields.SetRange(TableNo, RecRef.Number);
             if ADLSESetup."Use Field Captions" then
                 TableFields.SetRange("Field Caption", NameToUse)
