@@ -18,6 +18,22 @@ page 82566 "ADLSE Company Setup"
                 {
                     ToolTip = 'The company that is being Exported.';
                     ApplicationArea = All;
+                    trigger OnDrillDown()
+                    var
+                        ADLSESetupSpecCompanyTab: Record "ADLSE Setup Spec Company";
+                        ADLSESetupSpecCompany: Page "ADLSE Setup Spec Company";
+                    begin
+                        if ADLSESetupSpecCompanyTab.ChangeCompany(Rec."Sync Company") then begin
+                            if not ADLSESetupSpecCompanyTab.Get() then begin
+                                ADLSESetupSpecCompanyTab.Init();
+                                ADLSESetupSpecCompanyTab."Sync Company" := Rec."Sync Company";
+                                ADLSESetupSpecCompanyTab.Insert();
+                            end;
+                            ADLSESetupSpecCompany.SetRecord(ADLSESetupSpecCompanyTab);
+                            ADLSESetupSpecCompany.RunModal();
+                        end;
+                    end;
+
                 }
                 field(JobObjectIDtoRun; JobObjectIDtoRun)
                 {
@@ -54,6 +70,12 @@ page 82566 "ADLSE Company Setup"
                     ToolTip = 'Shows the earliest start date/time of the scheduled job queue entry for this company.';
                     ApplicationArea = All;
                     Editable = false;
+                }
+                field("Use Company Spec"; Rec."Use Company Spec")
+                {
+                    Caption = 'Use Company-Specific Settings';
+                    ToolTip = 'Specifies whether to use company-specific settings for Export.';
+                    ApplicationArea = All;
                 }
             }
             part("Company Tables"; "ADLSE Company Setup Tables")
@@ -288,6 +310,10 @@ page 82566 "ADLSE Company Setup"
         end;
     end;
 
+    trigger OnAfterGetCurrRecord()
+    begin
+        CurrPage."Company Tables".Page.SetTableIDFilter(Rec);
+    end;
 
     trigger OnAfterGetRecord()
     var
@@ -309,7 +335,7 @@ page 82566 "ADLSE Company Setup"
                 JobObjectIDtoRun := 0;
                 JobObjectCaptiontoRun := '';
             end;
-        end
+        end;
     end;
 
 

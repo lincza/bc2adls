@@ -304,6 +304,18 @@ page 82565 "ADLSE Company Setup Tables"
             until CurrADLSECompanySetupTable.Next() < 1;
     end;
 
+    internal procedure SetTableIDFilter(var ADLSESyncCompanies: Record "ADLSE Sync Companies")
+    var
+        ADLSECompaniesSpecTable: Record "ADLSE Companies Spec Table";
+    begin
+        if ADLSESyncCompanies."Use Company Spec" then
+            Rec.SetFilter("Table ID", ADLSECompaniesSpecTable.GetTableIdFilter(ADLSESyncCompanies."Sync Company"))
+        else
+            Rec.SetRange("Table ID");
+        // Rec.SetFilter("Sync Company", ADLSESyncCompanies.GetFilter("Sync Company"));
+        CurrPage.Update(false);
+    end;
+
     local procedure RefreshStatus(var CurrRec: Record "ADLSE Companies Table")
     var
         NewSessionId: Integer;

@@ -18,6 +18,22 @@ table 82573 "ADLSE Sync Companies"
             Caption = 'Sync Company';
             TableRelation = Company.Name where("Evaluation Company" = const(false));
         }
+        field(30; "Use Company Spec"; Boolean)
+        {
+            Caption = 'Use Company-Specific Settings';
+            ToolTip = 'Specifies whether to use company-specific settings for Export.';
+            InitValue = false;
+            DataClassification = CustomerContent;
+            trigger OnValidate()
+            var
+                ADLSESetupSpecCompanyTab: Record "ADLSE Setup Spec Company";
+            begin
+                ADLSESetupSpecCompanyTab.ChangeCompany(Rec."Sync Company");
+                ADLSESetupSpecCompanyTab.GetOrCreate();
+                ADLSESetupSpecCompanyTab."Sync Company" := Rec."Sync Company";
+                ADLSESetupSpecCompanyTab.Modify();
+            end;
+        }
 
     }
 
