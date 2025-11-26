@@ -4,6 +4,7 @@ table 82574 "ADLSE Companies Spec Table"
 {
     Access = Internal;
     Caption = 'ADLSE Company-Specific Table';
+    DataPerCompany = false;
     DataClassification = CustomerContent;
     Permissions = tabledata "ADLSE Field" = rd,
                   tabledata "ADLSE Table Last Timestamp" = d,
@@ -45,7 +46,6 @@ table 82574 "ADLSE Companies Spec Table"
     var
         ADLSECompaniesSpecTable: Record "ADLSE Companies Spec Table";
     begin
-        ADLSECompaniesSpecTable.ChangeCompany(Company);
         ADLSECompaniesSpecTable.SetFilter("Sync Company", Company);
         if ADLSECompaniesSpecTable.FindSet(false) then begin
             TableIdFilter := '';

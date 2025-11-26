@@ -21,16 +21,10 @@ page 82566 "ADLSE Company Setup"
                     trigger OnDrillDown()
                     var
                         ADLSESetupSpecCompanyTab: Record "ADLSE Setup Spec Company";
-                        ADLSESetupSpecCompany: Page "ADLSE Setup Spec Company";
                     begin
                         if ADLSESetupSpecCompanyTab.ChangeCompany(Rec."Sync Company") then begin
-                            if not ADLSESetupSpecCompanyTab.Get() then begin
-                                ADLSESetupSpecCompanyTab.Init();
-                                ADLSESetupSpecCompanyTab."Sync Company" := Rec."Sync Company";
-                                ADLSESetupSpecCompanyTab.Insert();
-                            end;
-                            ADLSESetupSpecCompany.SetRecord(ADLSESetupSpecCompanyTab);
-                            ADLSESetupSpecCompany.RunModal();
+                            ADLSESetupSpecCompanyTab.Get();
+                            Page.Run(Page::"ADLSE Setup Spec Company", ADLSESetupSpecCompanyTab);
                         end;
                     end;
 

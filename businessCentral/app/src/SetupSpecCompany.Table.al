@@ -11,7 +11,7 @@ table 82575 "ADLSE Setup Spec Company"
 
     fields
     {
-        field(1; "Primary Key"; Integer)
+        field(1; "Primary Key"; Code[10])
         {
             AllowInCustomizations = Always;
             Caption = 'Primary Key';
@@ -290,14 +290,6 @@ table 82575 "ADLSE Setup Spec Company"
     begin
         if not Exists() then
             Error(RecordDoesNotExistErr);
-    end;
-
-    procedure GetOrCreate()
-    begin
-        if Exists() then
-            exit;
-        "Primary Key" := GetPrimaryKeyValue();
-        Insert();
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"ADLSE Setup", 'r')]

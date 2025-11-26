@@ -29,9 +29,15 @@ table 82573 "ADLSE Sync Companies"
                 ADLSESetupSpecCompanyTab: Record "ADLSE Setup Spec Company";
             begin
                 ADLSESetupSpecCompanyTab.ChangeCompany(Rec."Sync Company");
-                ADLSESetupSpecCompanyTab.GetOrCreate();
-                ADLSESetupSpecCompanyTab."Sync Company" := Rec."Sync Company";
-                ADLSESetupSpecCompanyTab.Modify();
+                if ADLSESetupSpecCompanyTab.Get() then begin
+                    ADLSESetupSpecCompanyTab."Sync Company" := Rec."Sync Company";
+                    ADLSESetupSpecCompanyTab.Modify();
+                end
+                else begin
+                    ADLSESetupSpecCompanyTab.Init();
+                    ADLSESetupSpecCompanyTab."Sync Company" := Rec."Sync Company";
+                    ADLSESetupSpecCompanyTab.Insert();
+                end;
             end;
         }
 
