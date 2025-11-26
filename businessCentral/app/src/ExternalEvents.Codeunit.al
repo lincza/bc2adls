@@ -94,15 +94,20 @@ codeunit 82574 "ADLSE External Events"
         MyBusinessOnClearSchemaExportedOn(ADLSESetup.SystemId, ADLSESetup."Storage Type", Url, WebClientUrl);
     end;
 
-    internal procedure OnExport(ADLSESetup: Record "ADLSE Setup")
+    internal procedure OnExport(ADLSESetup: Interface ADLSESetup)
     var
+        ADLSESetupRealRec: Record "ADLSE Setup";
+        ADLSESetupCRealRec: Record "ADLSE Setup Spec Company";
         Url: Text[250];
         WebClientUrl: Text[250];
         ADLSEFieldApiUrlTok: Label 'bc2adlsTeamMicrosoft/bc2adls/v1.0/companies(%1)/adlseSetup(%2)', Locked = true;
     begin
-        Url := ADLSEExternalEventsHelper.CreateLink(ADLSEFieldApiUrlTok, ADLSESetup.SystemId);
-        WebClientUrl := CopyStr(GetUrl(ClientType::Web, CompanyName(), ObjectType::Page, Page::"ADLSE Setup", ADLSESetup), 1, MaxStrLen(WebClientUrl));
-        MyBusinessOnExport(ADLSESetup.SystemId, ADLSESetup."Storage Type", Url, WebClientUrl);
+        Url := ADLSEExternalEventsHelper.CreateLink(ADLSEFieldApiUrlTok, ADLSESetup.GetSystemId());
+        if ADLSESetup.GetRealRec(ADLSESetupRealRec) then
+            WebClientUrl := CopyStr(GetUrl(ClientType::Web, CompanyName(), ObjectType::Page, Page::"ADLSE Setup", ADLSESetupRealRec), 1, MaxStrLen(WebClientUrl));
+        if ADLSESetup.GetRealRec(ADLSESetupCRealRec) then
+            WebClientUrl := CopyStr(GetUrl(ClientType::Web, CompanyName(), ObjectType::Page, Page::"ADLSE Setup", ADLSESetupCRealRec), 1, MaxStrLen(WebClientUrl));
+        MyBusinessOnExport(ADLSESetup.GetSystemId(), ADLSESetup.GetStorageType(), Url, WebClientUrl);
     end;
 
     [Obsolete('Replaced with the OnExportFinishedv2 External Business Event', '24.0')]

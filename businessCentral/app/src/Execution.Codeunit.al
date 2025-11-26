@@ -53,20 +53,27 @@ codeunit 82569 "ADLSE Execution"
         ADLSEExternalEvents: Codeunit "ADLSE External Events";
         Counter: Integer;
         Started: Integer;
+        ADLSESetupInterface: Interface ADLSESetup;
+        ADLSESetupType: Enum ADLSESetupType;
     begin
-        ADLSESetup.CheckSetup(ADLSESetupRec);
-        EmitTelemetry := ADLSESetupRec."Emit telemetry";
+        if ADLSESyncCompanies.Get(CompanyName()) then
+            if ADLSESyncCompanies."Use Company Spec" then
+                ADLSESetupInterface := ADLSESetupType::"Per Company"
+            else
+                ADLSESetupInterface := ADLSESetupType::Global;
+        ADLSESetup.CheckSetup(ADLSESetupInterface);
+        EmitTelemetry := ADLSESetupInterface.GetEmitTelemetry();
         ADLSECurrentSession.CleanupSessions();
         if ADLSESyncCompanies.Get(CompanyName()) then begin// Possible Multi Company export Create session So that is can be stopped.
             ADLSECurrentSession.Start(ADLSESyncCompanies.RecordId.TableNo);
             Commit();
         end;
 
-        if ADLSESetupRec.GetStorageType() = ADLSESetupRec."Storage Type"::"Azure Data Lake" then //Because Fabric doesn't have do create a container
+        if ADLSESetupInterface.GetStorageType() = ADLSESetupRec."Storage Type"::"Azure Data Lake" then //Because Fabric doesn't have do create a container
             ADLSECommunication.SetupBlobStorage();
         ADLSESessionManager.Init();
 
-        ADLSEExternalEvents.OnExport(ADLSESetupRec);
+        ADLSEExternalEvents.OnExport(ADLSESetupInterface);
 
         if EmitTelemetry then
             Log('ADLSE-022', 'Starting export for all tables', Verbosity::Normal);

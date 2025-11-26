@@ -75,18 +75,18 @@ codeunit 82560 "ADLSE Setup"
         exit(true);
     end;
 
-    procedure CheckSetup(var ADLSESetup: Record "ADLSE Setup")
+    procedure CheckSetup(var ADLSESetup: Interface ADLSESetup)
     var
+        ADLSESetupRec: Record "ADLSE Setup";
         ADLSECurrentSession: Record "ADLSE Current Session";
         ADLSECredentials: Codeunit "ADLSE Credentials";
     begin
-        ADLSESetup.GetSingleton();
-        if ADLSESetup."Storage Type" = ADLSESetup."Storage Type"::"Azure Data Lake" then
-            ADLSESetup.TestField(Container);
-        if ADLSESetup."Storage Type" = ADLSESetup."Storage Type"::"Microsoft Fabric" then
-            ADLSESetup.TestField(Workspace);
-        if ADLSESetup."Storage Type" = ADLSESetup."Storage Type"::"Open Mirroring" then
-            ADLSESetup.TestField(LandingZone);
+        if ADLSESetup.GetStorageType() = ADLSESetupRec."Storage Type"::"Azure Data Lake" then
+            ADLSESetup.TestField(ADLSESetupRec.FieldNo(Container));
+        if ADLSESetup.GetStorageType() = ADLSESetupRec."Storage Type"::"Microsoft Fabric" then
+            ADLSESetup.TestField(ADLSESetupRec.FieldNo(Workspace));
+        if ADLSESetup.GetStorageType() = ADLSESetupRec."Storage Type"::"Open Mirroring" then
+            ADLSESetup.TestField(ADLSESetupRec.FieldNo(LandingZone));
 
         ADLSESetup.CheckSchemaExported();
 

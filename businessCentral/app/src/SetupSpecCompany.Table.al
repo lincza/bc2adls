@@ -272,7 +272,6 @@ table 82575 "ADLSE Setup Spec Company"
         PrimaryKeyValueLbl: Label '0', Locked = true;
         SchemaAlreadyExportedErr: Label 'Schema already exported. Please perform the action "clear schema export date" before changing the schema.';
         MaximumRetriesErr: Label 'Please enter a value that is equal or smaller than 10 for the maximum retries.';
-        NoSchemaExportedErr: Label 'No schema has been exported yet. Please export schema first before exporting the data.';
 
     local procedure TextCharactersOtherThan(String: Text; CharString: Text): Boolean
     var
@@ -324,12 +323,5 @@ table 82575 "ADLSE Setup Spec Company"
             );
             Error(FixitErrorInfo);
         end;
-    end;
-
-    procedure CheckSchemaExported()
-    begin
-        Rec.GetSingleton();
-        if Rec."Schema Exported On" = 0DT then
-            Error(NoSchemaExportedErr);
     end;
 }

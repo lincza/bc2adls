@@ -328,10 +328,4 @@ table 82560 "ADLSE Setup"
         end;
     end;
 
-    procedure CheckSchemaExported()
-    begin
-        Rec.GetSingleton();
-        if Rec."Schema Exported On" = 0DT then
-            Error(NoSchemaExportedErr);
-    end;
 }
