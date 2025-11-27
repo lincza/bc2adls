@@ -55,6 +55,11 @@ page 82566 "ADLSE Company Setup"
                     ApplicationArea = All;
                     Editable = false;
                 }
+                field(LandingZone; Rec.LandingZone)
+                {
+                    Caption = 'Landing Zone';
+                    ToolTip = 'Specifies the name of the Landing Zone where the data is going to be uploaded. This Landing Zone you can find at the Replication Status page in Microsoft Fabric.';
+                }
             }
             part("Company Tables"; "ADLSE Company Setup Tables")
             {

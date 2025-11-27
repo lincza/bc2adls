@@ -48,6 +48,11 @@ page 82565 "ADLSE Company Setup Tables"
                     Editable = false;
                     ToolTip = 'Specifies the No. of Records for the table.';
                 }
+                field(Include; Rec.Include)
+                {
+                    Caption = 'Include';
+                    ApplicationArea = All;
+                }
                 field(Status; Rec."Last Run State")
                 {
                     ApplicationArea = All;

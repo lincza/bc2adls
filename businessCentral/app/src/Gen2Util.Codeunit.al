@@ -338,6 +338,7 @@ codeunit 82568 "ADLSE Gen 2 Util"
 
     procedure DropTableFromOpenMirroring(ADLSEntityName: Text; ADLSECredentials: Codeunit "ADLSE Credentials"; AllCompanies: Boolean)
     var
+        ADLSESyncCompanies: Record "ADLSE Sync Companies";
         ADLSESetup: Record "ADLSE Setup";
         ADLSEHttp: Codeunit "ADLSE Http";
         IsHandled: Boolean;
@@ -354,7 +355,11 @@ codeunit 82568 "ADLSE Gen 2 Util"
 
 
         if AllCompanies then begin
-            Url := ADLSESetup.LandingZone;
+            ADLSESyncCompanies.Get(CompanyName());
+            if ADLSESyncCompanies.LandingZone <> '' then
+                Url := ADLSESyncCompanies.LandingZone
+            else
+                Url := ADLSESetup.LandingZone;
             Url += '/' + ADLSEntityName + '?recursive=true';
 
             ADLSEHttp.SetMethod("ADLSE Http Method"::Delete);

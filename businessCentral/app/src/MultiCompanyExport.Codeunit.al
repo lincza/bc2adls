@@ -7,11 +7,14 @@ codeunit 82579 "ADLSE Multi Company Export"
         ADLSETable: Record "ADLSE Table";
         ADLSESyncCompanies: Record "ADLSE Sync Companies";
         ADLSECurrentSession: Record "ADLSE Current Session";
+        ADLSECompaniesTable: Record "ADLSE Companies Table";
         ADLSETableFilter: Record "ADLSE Table" temporary;
         SessionId: Integer;
     begin
-        if FilterTable <> '' then
+        if FilterTable <> '' then begin
             ADLSETableFilter.SetFilter("Table ID", FilterTable);
+            ADLSECompaniesTable.SetFilter("Table ID", FilterTable);
+        end;
         ADLSESyncCompanies.Reset();
         if CompanyFilters <> '' then
             ADLSESyncCompanies.SetFilter("Sync Company", CompanyFilters);
@@ -19,6 +22,11 @@ codeunit 82579 "ADLSE Multi Company Export"
             Message(ExportStartedTxt, ADLSETable.Count, ADLSESyncCompanies.Count());
         if ADLSESyncCompanies.FindSet(false) then
             repeat
+                GetincludedTableIDFilter(ADLSESyncCompanies, ADLSECompaniesTable);
+                if IncludeFilterTable <> '' then begin
+                    ADLSETableFilter.SetRange("Table ID");
+                    ADLSETableFilter.SetFilter("Table ID", IncludeFilterTable);
+                end;
                 Clear(SessionId);
                 if session.StartSession(SessionId, Codeunit::"ADLSE Execution", ADLSESyncCompanies."Sync Company", ADLSETableFilter) then begin
                     ADLSECurrentSession.ChangeCompany(ADLSESyncCompanies."Sync Company");
@@ -33,6 +41,7 @@ codeunit 82579 "ADLSE Multi Company Export"
 
     var
         FilterTable: Text;
+        IncludeFilterTable: Text;
         CompanyFilters: text;
         ExportStartedTxt: Label 'Data export started for %1 tables in %2 Companies. Please refresh this page to see the latest export state for the tables. Only those tables that either have had changes since the last export or failed to export last time have been included. The tables for which the exports could not be started have been queued up for later.', Comment = '%1 = Total number of tables to start the export for. %2 = Total number of companies to export for.';
 
@@ -55,6 +64,19 @@ codeunit 82579 "ADLSE Multi Company Export"
                 if not ActiveSession.IsEmpty then
                     exit(true)
             until ADLSECurrentSession.Next() < 1;
+    end;
+
+    local procedure GetincludedTableIDFilter(var ADLSESyncCompanies: Record "ADLSE Sync Companies"; var ADLSECompaniesTable: Record "ADLSE Companies Table")
+    begin
+        ADLSECompaniesTable.SetRange(Include, true);
+        ADLSECompaniesTable.SetRange("Sync Company", ADLSESyncCompanies."Sync Company");
+        if ADLSECompaniesTable.FindSet(false) then
+            repeat
+                if IncludeFilterTable = '' then
+                    IncludeFilterTable := Format(ADLSECompaniesTable."Table ID")
+                else
+                    IncludeFilterTable := IncludeFilterTable + '|' + Format(ADLSECompaniesTable."Table ID");
+            until ADLSECompaniesTable.Next() < 1;
     end;
 
 

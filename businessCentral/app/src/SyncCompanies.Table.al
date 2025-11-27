@@ -18,6 +18,11 @@ table 82573 "ADLSE Sync Companies"
             Caption = 'Sync Company';
             TableRelation = Company.Name where("Evaluation Company" = const(false));
         }
+        field(32; LandingZone; Text[250])
+        {
+            Caption = 'Landing Zone';
+            ToolTip = 'Specifies the name of the Landing Zone where the data is going to be uploaded. This Landing Zone you can find at the Replication Status page in Microsoft Fabric.';
+        }
 
     }
 

@@ -48,6 +48,7 @@ codeunit 82562 "ADLSE Communication"
 
     local procedure GetBaseUrl(): Text
     var
+        ADLSESyncCompanies: Record "ADLSE Sync Companies";
         ADLSESetup: Record "ADLSE Setup";
         ValidGuid: Guid;
     begin
@@ -66,7 +67,13 @@ codeunit 82562 "ADLSE Communication"
                 else
                     exit(StrSubstNo(MSFabricUrlGuidTxt, ADLSESetup.Workspace, ADLSESetup.Lakehouse));
             ADLSESetup."Storage Type"::"Open Mirroring":
-                exit(ADLSESetup.LandingZone);
+                begin
+                    ADLSESyncCompanies.Get(CompanyName());
+                    if ADLSESyncCompanies.LandingZone <> '' then
+                        exit(ADLSESyncCompanies.LandingZone)
+                    else
+                        exit(ADLSESetup.LandingZone);
+                end;
         end;
     end;
 
@@ -342,6 +349,7 @@ codeunit 82562 "ADLSE Communication"
 
     procedure UpdateCdmJsons(EntityJsonNeedsUpdate: Boolean; ManifestJsonsNeedsUpdate: Boolean)
     var
+        ADLSESyncCompanies: Record "ADLSE Sync Companies";
         ADLSESetup: Record "ADLSE Setup";
         ADLSEGen2Util: Codeunit "ADLSE Gen 2 Util";
         LeaseID: Text;
@@ -354,8 +362,14 @@ codeunit 82562 "ADLSE Communication"
         //TODO create open morroring specific code for this
         // update entity json
         if EntityJsonNeedsUpdate then begin
-            if ADLSESetup."Storage Type" = ADLSESetup."Storage Type"::"Open Mirroring" then
-                BlobPath := ADLSESetup.LandingZone + StrSubstNo(CorpusJsonPathTxt, EntityName) + StrSubstNo(CorpusJsonPathTxt, '_metadata.json')
+            if ADLSESetup."Storage Type" = ADLSESetup."Storage Type"::"Open Mirroring" then begin
+
+                ADLSESyncCompanies.Get(CompanyName());
+                if ADLSESyncCompanies.LandingZone <> '' then
+                    BlobPath := ADLSESyncCompanies.LandingZone + StrSubstNo(CorpusJsonPathTxt, EntityName) + StrSubstNo(CorpusJsonPathTxt, '_metadata.json')
+                else
+                    BlobPath := ADLSESetup.LandingZone + StrSubstNo(CorpusJsonPathTxt, EntityName) + StrSubstNo(CorpusJsonPathTxt, '_metadata.json')
+            end
             else
                 BlobPath := GetBaseUrl() + StrSubstNo(CorpusJsonPathTxt, StrSubstNo(EntityManifestNameTemplateTxt, EntityName));
             if ADLSESetup.GetStorageType() = ADLSESetup."Storage Type"::"Azure Data Lake" then

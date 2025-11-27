@@ -51,6 +51,13 @@ table 82572 "ADLSE Companies Table"
         {
             Caption = 'Last error';
         }
+        field(65; Include; Boolean)
+        {
+            Caption = 'Include';
+            ToolTip = 'Specifies whether this table is included in the data export process to Azure Data Lake Storage Explorer.';
+            InitValue = true;
+            DataClassification = CustomerContent;
+        }
     }
 
     keys
