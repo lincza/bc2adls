@@ -94,6 +94,13 @@ codeunit 82566 "ADLSE CDM Util" // Refer Common Data Model https://docs.microsof
                 Columns.Add(Column);
             end;
 
+        if ADLSESetup."Delivered DateTime" then begin
+            Clear(Column);
+            Column.Add('Name', GetDeliveredDateTimeFieldName());
+            Column.Add('DataType', GetCDMDataFormat(FieldRef.Type::DateTime));
+            Column.Add('IsNullable', true);
+            Columns.Add(Column);
+        end;
         SchemaDefinition.Add('Columns', Columns);
         Content.Add('SchemaDefinition', SchemaDefinition);
         Content.Add('fileFormat', 'csv');
