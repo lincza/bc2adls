@@ -22,6 +22,7 @@ codeunit 82579 "ADLSE Multi Company Export"
             Message(ExportStartedTxt, ADLSETable.Count, ADLSESyncCompanies.Count());
         if ADLSESyncCompanies.FindSet(false) then
             repeat
+                IncludeFilterTable := '';
                 GetincludedTableIDFilter(ADLSESyncCompanies, ADLSECompaniesTable);
                 if IncludeFilterTable <> '' then begin
                     ADLSETableFilter.SetRange("Table ID");
