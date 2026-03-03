@@ -4,13 +4,15 @@ codeunit 82561 "ADLSE Execute"
 {
     Access = Internal;
     TableNo = "ADLSE Table";
-    Permissions = tabledata "ADLSE Table" = rm;
+    Permissions = tabledata "ADLSE Table" = rm, tabledata "ADLSE Companies Table" = rm;
 
     trigger OnRun()
     var
         ADLSESetup: Record "ADLSE Setup";
         ADLSERun: Record "ADLSE Run";
         ADLSETable: Record "ADLSE Table";
+        ADLSECompaniesTable: Record "ADLSE Companies Table";
+        ADLSESyncCompanies: Record "ADLSE Sync Companies";
         ADLSECurrentSession: Record "ADLSE Current Session";
         ADLSETableLastTimestamp: Record "ADLSE Table Last Timestamp";
         ADLSECommunication: Codeunit "ADLSE Communication";
@@ -97,9 +99,16 @@ codeunit 82561 "ADLSE Execute"
 
         //Addin the number when open mirroring is used
         if (ADLSESetup."Storage Type" = ADLSESetup."Storage Type"::"Open Mirroring") and (ExportSuccess) then begin
-            ADLSETable.Get(Rec."Table ID");
-            ADLSETable.ExportFileNumber := ADLSETable.ExportFileNumber + 1;
-            ADLSETable.Modify(true);
+            ADLSESyncCompanies.Get(CompanyName());
+            if ADLSESyncCompanies.LandingZone <> '' then begin
+                ADLSECompaniesTable.Get(Rec."Table ID", CompanyName());
+                ADLSECompaniesTable.ExportFileNumber := ADLSECompaniesTable.ExportFileNumber + 1;
+                ADLSECompaniesTable.Modify(true);
+            end else begin
+                ADLSETable.Get(Rec."Table ID");
+                ADLSETable.ExportFileNumber := ADLSETable.ExportFileNumber + 1;
+                ADLSETable.Modify(true);
+            end;
         end;
 
         ADLSEExternalEvents.OnAllExportIsFinished(ADLSESetup);
@@ -266,6 +275,8 @@ codeunit 82561 "ADLSE Execute"
         ADLSEDeletedRecord: Record "ADLSE Deleted Record";
         ADLSESetup: Record "ADLSE Setup";
         ADLSETable: Record "ADLSE Table";
+        ADLSECompaniesTable: Record "ADLSE Companies Table";
+        ADLSESyncCompanies: Record "ADLSE Sync Companies";
         ADLSESeekData: Report "ADLSE Seek Data";
         ADLSEUtil: Codeunit "ADLSE Util";
         ADLSEExecution: Codeunit "ADLSE Execution";
@@ -286,9 +297,16 @@ codeunit 82561 "ADLSE Execute"
             //Addin the number when open mirroring is used
             if DidUpserts then
                 if (ADLSESetup."Storage Type" = ADLSESetup."Storage Type"::"Open Mirroring") then begin
-                    ADLSETable.Get(TableID);
-                    ADLSETable.ExportFileNumber := ADLSETable.ExportFileNumber + 1;
-                    ADLSETable.Modify(true);
+                    ADLSESyncCompanies.Get(CompanyName());
+                    if ADLSESyncCompanies.LandingZone <> '' then begin
+                        ADLSECompaniesTable.Get(TableID, CompanyName());
+                        ADLSECompaniesTable.ExportFileNumber := ADLSECompaniesTable.ExportFileNumber + 1;
+                        ADLSECompaniesTable.Modify(true);
+                    end else begin
+                        ADLSETable.Get(TableID);
+                        ADLSETable.ExportFileNumber := ADLSETable.ExportFileNumber + 1;
+                        ADLSETable.Modify(true);
+                    end;
                 end;
             RecordRef.Open(ADLSEDeletedRecord."Table ID");
 
@@ -396,6 +414,11 @@ codeunit 82561 "ADLSE Execute"
     end;
 
     procedure ExportSchema(tableId: Integer)
+    begin
+        ExportSchema(tableId, '');
+    end;
+
+    procedure ExportSchema(tableId: Integer; LandingZoneOverride: Text)
     var
         ADLSESetup: Record "ADLSE Setup";
         ADLSETableLastTimestamp: Record "ADLSE Table Last Timestamp";
@@ -416,6 +439,8 @@ codeunit 82561 "ADLSE Execute"
         FieldIdList := CreateFieldListForTable(tableId);
 
         ADLSECommunication.Init(tableId, FieldIdList, UpdatedLastTimestamp, EmitTelemetry);
+        if LandingZoneOverride <> '' then
+            ADLSECommunication.SetLandingZoneOverride(LandingZoneOverride);
 
         if ADLSESetup."Storage Type" <> ADLSESetup."Storage Type"::"Open Mirroring" then //Always export the schema for Open Mirroring
             ADLSECommunication.CheckEntity(CDMDataFormat, EntityJsonNeedsUpdate, ManifestJsonsNeedsUpdate, true)

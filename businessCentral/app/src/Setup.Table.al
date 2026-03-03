@@ -246,6 +246,13 @@ table 82560 "ADLSE Setup"
             ToolTip = 'Specifies if the captions of Tables will be used instead of names.';
             InitValue = false;
         }
+        field(96; "Set All New Tables Included"; Boolean)
+        {
+            Caption = 'Set all new tables included';
+            ToolTip = 'Specifies that all new tables will be included for export by default.';
+            DataClassification = ToBeClassified;
+            InitValue = true;
+        }
     }
 
     keys
@@ -291,6 +298,7 @@ table 82560 "ADLSE Setup"
         if Exists() then
             exit;
         "Primary Key" := GetPrimaryKeyValue();
+        "Set All New Tables Included" := true;
         Insert();
     end;
 

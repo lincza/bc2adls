@@ -20,6 +20,7 @@ codeunit 82562 "ADLSE Communication"
         DefaultContainerName: Text;
         MaxSizeOfPayloadMiB: Integer;
         EmitTelemetry: Boolean;
+        LandingZoneOverride: Text;
         DeltaCdmManifestNameTxt: Label 'deltas.manifest.cdm.json', Locked = true;
         DataCdmManifestNameTxt: Label 'data.manifest.cdm.json', Locked = true;
         EntityManifestNameTemplateTxt: Label '%1.cdm.json', Locked = true, Comment = '%1 = Entity name';
@@ -170,10 +171,13 @@ codeunit 82562 "ADLSE Communication"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"ADLSE Table", 'rm')]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"ADLSE Companies Table", 'rm')]
     local procedure CreateDataBlob() Created: Boolean
     var
         ADLSESetup: Record "ADLSE Setup";
         ADLSETable: Record "ADLSE Table";
+        ADLSECompaniesTable: Record "ADLSE Companies Table";
+        ADLSESyncCompanies: Record "ADLSE Sync Companies";
         ADLSEUtil: Codeunit "ADLSE Util";
         ADLSEGen2Util: Codeunit "ADLSE Gen 2 Util";
         ADLSEExecution: Codeunit "ADLSE Execution";
@@ -198,9 +202,16 @@ codeunit 82562 "ADLSE Communication"
                 BlobContentLength := 0;
 
                 if (ADLSESetup.GetStorageType() = ADLSESetup."Storage Type"::"Open Mirroring") then begin
-                    ADLSETable.Get(TableID);
-                    ADLSETable.ExportFileNumber := ADLSETable.ExportFileNumber + 1;
-                    ADLSETable.Modify(true);
+                    ADLSESyncCompanies.Get(CompanyName());
+                    if ADLSESyncCompanies.LandingZone <> '' then begin
+                        ADLSECompaniesTable.Get(TableID, CompanyName());
+                        ADLSECompaniesTable.ExportFileNumber := ADLSECompaniesTable.ExportFileNumber + 1;
+                        ADLSECompaniesTable.Modify(true);
+                    end else begin
+                        ADLSETable.Get(TableID);
+                        ADLSETable.ExportFileNumber := ADLSETable.ExportFileNumber + 1;
+                        ADLSETable.Modify(true);
+                    end;
                     Commit(); // Because of multiple files in one session can be exported
                 end;
             end;
@@ -209,12 +220,22 @@ codeunit 82562 "ADLSE Communication"
             FileIdentifer := CreateGuid()
         else begin
             //https://learn.microsoft.com/en-us/fabric/database/mirrored-database/open-mirroring-landing-zone-format#data-file-and-format-in-the-landing-zone
-            ADLSETable.Get(TableID);
-            if ADLSETable.ExportFileNumber = 0 then begin
-                ADLSETable.ExportFileNumber := 1;
-                ADLSETable.Modify(true);
+            ADLSESyncCompanies.Get(CompanyName());
+            if ADLSESyncCompanies.LandingZone <> '' then begin
+                ADLSECompaniesTable.Get(TableID, CompanyName());
+                if ADLSECompaniesTable.ExportFileNumber = 0 then begin
+                    ADLSECompaniesTable.ExportFileNumber := 1;
+                    ADLSECompaniesTable.Modify(true);
+                end;
+                FileIdentiferTxt := Format(ADLSECompaniesTable.ExportFileNumber);
+            end else begin
+                ADLSETable.Get(TableID);
+                if ADLSETable.ExportFileNumber = 0 then begin
+                    ADLSETable.ExportFileNumber := 1;
+                    ADLSETable.Modify(true);
+                end;
+                FileIdentiferTxt := Format(ADLSETable.ExportFileNumber);
             end;
-            FileIdentiferTxt := Format(ADLSETable.ExportFileNumber);
             FileIdentiferTxt := FileIdentiferTxt.PadLeft(20, '0');
         end;
 
@@ -347,6 +368,11 @@ codeunit 82562 "ADLSE Communication"
         end;
     end;
 
+    procedure SetLandingZoneOverride(LandingZone: Text)
+    begin
+        LandingZoneOverride := LandingZone;
+    end;
+
     procedure UpdateCdmJsons(EntityJsonNeedsUpdate: Boolean; ManifestJsonsNeedsUpdate: Boolean)
     var
         ADLSESyncCompanies: Record "ADLSE Sync Companies";
@@ -355,20 +381,24 @@ codeunit 82562 "ADLSE Communication"
         LeaseID: Text;
         BlobPath: Text;
         BlobExists: Boolean;
+        ResolvedLandingZone: Text;
     begin
         ADLSESetup.ReadIsolation := IsolationLevel::UpdLock;
         ADLSESetup.GetSingleton();
 
-        //TODO create open morroring specific code for this
         // update entity json
         if EntityJsonNeedsUpdate then begin
             if ADLSESetup."Storage Type" = ADLSESetup."Storage Type"::"Open Mirroring" then begin
-
-                ADLSESyncCompanies.Get(CompanyName());
-                if ADLSESyncCompanies.LandingZone <> '' then
-                    BlobPath := ADLSESyncCompanies.LandingZone + StrSubstNo(CorpusJsonPathTxt, EntityName) + StrSubstNo(CorpusJsonPathTxt, '_metadata.json')
-                else
-                    BlobPath := ADLSESetup.LandingZone + StrSubstNo(CorpusJsonPathTxt, EntityName) + StrSubstNo(CorpusJsonPathTxt, '_metadata.json')
+                if LandingZoneOverride <> '' then
+                    ResolvedLandingZone := LandingZoneOverride
+                else begin
+                    ADLSESyncCompanies.Get(CompanyName());
+                    if ADLSESyncCompanies.LandingZone <> '' then
+                        ResolvedLandingZone := ADLSESyncCompanies.LandingZone
+                    else
+                        ResolvedLandingZone := ADLSESetup.LandingZone;
+                end;
+                BlobPath := ResolvedLandingZone + StrSubstNo(CorpusJsonPathTxt, EntityName) + StrSubstNo(CorpusJsonPathTxt, '_metadata.json')
             end
             else
                 BlobPath := GetBaseUrl() + StrSubstNo(CorpusJsonPathTxt, StrSubstNo(EntityManifestNameTemplateTxt, EntityName));
