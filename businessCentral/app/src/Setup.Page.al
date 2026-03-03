@@ -161,6 +161,9 @@ page 82560 "ADLSE Setup"
                     field("Use Friendly Company Name"; Rec."Use Friendly Company Name")
                     {
                     }
+                    field("Set All New Tables Included"; Rec."Set All New Tables Included")
+                    {
+                    }
                 }
             }
             part(Tables; "ADLSE Setup Tables")

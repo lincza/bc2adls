@@ -216,6 +216,7 @@ table 82561 "ADLSE Table"
         ADLSEDeletedRecord: Record "ADLSE Deleted Record";
         ADLSETableLastTimestamp: Record "ADLSE Table Last Timestamp";
         ADLSESetup: Record "ADLSE Setup";
+        ADLSECompaniesTable: Record "ADLSE Companies Table";
         Company: Record Company;
         ADLSECommunication: Codeunit "ADLSE Communication";
         Counter: Integer;
@@ -265,6 +266,17 @@ table 82561 "ADLSE Table"
 
                 if (ADLSESetup."Delete Table") then
                     ADLSECommunication.ResetTableExport(Rec."Table ID", AllCompanies);
+
+                // Reset ExportFileNumber per-company for Open Mirroring
+                if ADLSESetup."Storage Type" = ADLSESetup."Storage Type"::"Open Mirroring" then
+                    if AllCompanies then begin
+                        ADLSECompaniesTable.SetRange("Table ID", Rec."Table ID");
+                        ADLSECompaniesTable.ModifyAll(ExportFileNumber, 1);
+                    end else
+                        if ADLSECompaniesTable.Get(Rec."Table ID", CompanyName()) then begin
+                            ADLSECompaniesTable.ExportFileNumber := 1;
+                            ADLSECompaniesTable.Modify(true);
+                        end;
 
                 Rec.ExportFileNumber := 1;
                 Rec.Modify(true);
@@ -361,14 +373,15 @@ table 82561 "ADLSE Table"
     var
         ADLSECompaniesTable: Record "ADLSE Companies Table";
         ADLSESyncCompanies: Record "ADLSE Sync Companies";
+        ADLSESetup: Record "ADLSE Setup";
         SyncCompany: Text[30];
     begin
         // Rowmarker semantics used here:
         // 0 = Insert -> add missing rows for this Sync Company across ALL table IDs (do not update existing rows)
         // 1 = Modify -> update existing rows for this Sync Company across ALL table IDs (do not insert missing rows)
         // 2 = Delete -> remove ALL rows for this Sync Company across ALL table IDs (except current row already being deleted)
-
-        SyncCompany := CompanyName;
+        ADLSESetup.GetSingleton();
+        SyncCompany := CopyStr(CompanyName, 1, MaxStrLen(SyncCompany));
         if SyncCompany = '' then
             exit;
 
@@ -385,6 +398,7 @@ table 82561 "ADLSE Table"
                         ADLSECompaniesTable.Init();
                         ADLSECompaniesTable."Table ID" := Rec."Table ID";
                         ADLSECompaniesTable."Sync Company" := ADLSESyncCompanies."Sync Company";
+                        ADLSECompaniesTable.Include := ADLSESetup."Set All New Tables Included";
                         if ADLSECompaniesTable.Insert(false) then;
                     until ADLSESyncCompanies.Next() = 0;
             8: // Rename: 

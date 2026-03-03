@@ -12,5 +12,6 @@ codeunit 82575 "ADLSE UpgradeTagNewCompanySubs"
     begin
         PerCompanyUpgradeTags.Add(ADLSEUpgrade.GetRetenPolLogEntryAddedUpgradeTag());
         PerCompanyUpgradeTags.Add(ADLSEUpgrade.GetContainerFieldFromIsolatedStorageToSetupFieldUpgradeTag());
+        PerCompanyUpgradeTags.Add(ADLSEUpgrade.GetMigrateExportFileNumberToCompaniesTableUpgradeTag());
     end;
 }
