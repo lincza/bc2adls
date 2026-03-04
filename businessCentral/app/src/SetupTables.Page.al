@@ -300,4 +300,7 @@ page 82561 "ADLSE Setup Tables"
         LastStarted: DateTime;
         LastRunError: Text[2048];
         NoExportInProgress: Boolean;
+
+    var
+        AppMgt: Codeunit "ADLSE Setup";
 }

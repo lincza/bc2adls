@@ -1,23 +1,23 @@
 {
   "id": "1688530c-452c-4b06-8947-ab4bf5b26053",
-  "name": "Azure Data Lake Storage Export",
-  "publisher": "The bc2adls team",
+  "name": "Datalinc Fabric Open Mirroring",
+  "publisher": "Linc Communications (Pty) Ltd",
   "brief": "Sync data from Business Central to the Azure storage",
   "description": "Exports data in chosen tables to the Azure Data Lake and keeps it in sync by incremental updates. Before you use this tool, please read the SUPPORT.md file at https://github.com/microsoft/bc2adls.",
-  "version": "26.40.0.4",
-  "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
-  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
-  "help": "https://github.com/Bertverbeek4PS/bc2adls?tab=readme-ov-file#introduction",
-  "url": "https://github.com/Bertverbeek4PS/bc2adls",
-  "contextSensitiveHelpUrl": "https://github.com/Bertverbeek4PS/bc2adls?tab=readme-ov-file#introduction",
+  "version": "26.40.0.5",
+   "privacyStatement": "https://linc.co.za/privacy-policy",
+  "EULA": "https://linc.co.za/linc-extensions-eula",
+  "help": "https://github.com/LincCommunications/bc2adls?tab=readme-ov-file#introduction",
+  "url": "",
+  "contextSensitiveHelpUrl": "https://lincza.github.io/DataLinc",
   "logo": "../../.assets/bc2adls_logo.png",
   "screenshots": [],
   "platform": "26.0.0.0",
   "application": "26.0.0.0",
   "resourceExposurePolicy": {
     "allowDebugging": true,
-    "allowDownloadingSource": true,
-    "includeSourceInSymbolFile": true
+    "allowDownloadingSource": false,
+    "includeSourceInSymbolFile": false
   },
   "idRanges": [
     {
@@ -35,6 +35,14 @@
       "publisher": "The bc2adls team",
       "name": "Azure Data Lake Storage Export Tests",
       "id": "03486619-1622-4261-ae0e-b366b3c96e3c"
+    }
+  ],
+  "dependencies": [
+     {
+      "id": "3e3bc6ec-214d-4029-9060-8a3a1a32ed63",
+      "name": "Linc Extension Access",
+      "publisher": "Linc Communications (Pty) Ltd",
+      "version": "0.0.0.0"
     }
   ],
   "target": "Cloud",

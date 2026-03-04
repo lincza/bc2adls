@@ -189,6 +189,10 @@ page 82560 "ADLSE Setup"
                 var
                     ADLSEExecution: Codeunit "ADLSE Execution";
                 begin
+                    if not AppMgt.IsAppSubscriptionActive('') then begin
+                        AppMgt.SendAppSubscriptionNotification(false);
+                        exit;
+                    end;
                     ADLSEExecution.StartExport();
                     CurrPage.Update();
                 end;
@@ -220,6 +224,10 @@ page 82560 "ADLSE Setup"
                 var
                     ADLSEExecution: Codeunit "ADLSE Execution";
                 begin
+                    if not AppMgt.IsAppSubscriptionActive('') then begin
+                        AppMgt.SendAppSubscriptionNotification(false);
+                        exit;
+                    end;
                     ADLSEExecution.SchemaExport();
                     CurrPage.Update();
                 end;
@@ -365,6 +373,7 @@ page 82560 "ADLSE Setup"
     }
 
     var
+        AppMgt: Codeunit "ADLSE Setup";
         FabricOpenMirroring, AzureDataLake : Boolean;
         ClientSecretLbl: Label 'Secret not shown';
         ClientIdLbl: Label 'ID not shown';
