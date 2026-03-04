@@ -323,6 +323,7 @@ page 82565 "ADLSE Company Setup Tables"
     end;
 
     var
+        AppMgt: Codeunit "ADLSE Setup";
         NoExportInProgress: Boolean;
 
         NumberFieldsChosenValue: Integer;

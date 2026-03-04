@@ -79,7 +79,12 @@ codeunit 82560 "ADLSE Setup"
     var
         ADLSECurrentSession: Record "ADLSE Current Session";
         ADLSECredentials: Codeunit "ADLSE Credentials";
+        AppMgt: Codeunit "ADLSE Setup";
     begin
+        if not AppMgt.IsAppSubscriptionActive('') then begin
+            AppMgt.SendAppSubscriptionNotification(false);
+            Error('This feature is not available because the required app subscription is not active. Please contact your administrator.');
+        end;
         ADLSESetup.GetSingleton();
         if ADLSESetup."Storage Type" = ADLSESetup."Storage Type"::"Azure Data Lake" then
             ADLSESetup.TestField(Container);
@@ -150,5 +155,26 @@ codeunit 82560 "ADLSE Setup"
                 Message(StrSubstNo(ShowMessageLbl));
             end;
         end;
+    end;
+
+    procedure SendAppSubscriptionNotification(PlanControlsEnabled_APR_LINC: Boolean)
+    var
+        AccessMgt: Codeunit LincAppAccessMgt_LXA_LINC;
+        FeatureTextMsg: Label 'BC to ADLS Export fabric';
+        ThisAppInfo: ModuleInfo;
+    begin
+        NavApp.GetCurrentModuleInfo(ThisAppInfo);
+        AccessMgt.SendAppSubscriptionNotification(PlanControlsEnabled_APR_LINC, FeatureTextMsg, ThisAppInfo);
+    end;
+
+    procedure IsAppSubscriptionActive(FeatureName: Text[50]): Boolean
+    var
+        AccessMgt: Codeunit LincAppAccessMgt_LXA_LINC;
+        ThisAppInfo: ModuleInfo;
+        EnabledResult: Boolean;
+    begin
+        NavApp.GetCurrentModuleInfo(ThisAppInfo);
+        EnabledResult := AccessMgt.IsAppAccessEnabled(ThisAppInfo, FeatureName);
+        exit(EnabledResult);
     end;
 }

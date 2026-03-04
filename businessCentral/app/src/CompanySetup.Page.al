@@ -82,6 +82,11 @@ page 82566 "ADLSE Company Setup"
                     TempJobQueueEntry: Record "Job Queue Entry" temporary;
                     "ADLSE Multi Company Export": Codeunit "ADLSE Multi Company Export";
                 begin
+                    if not AppMgt.IsAppSubscriptionActive('') then begin
+                        AppMgt.SendAppSubscriptionNotification(false);
+                        exit;
+                    end;
+
                     "ADLSE Multi Company Export".Run(TempJobQueueEntry);
                     CurrPage.Update();
                 end;
@@ -103,6 +108,10 @@ page 82566 "ADLSE Company Setup"
                     "ADLSE Multi Company Export": Codeunit "ADLSE Multi Company Export";
                     FilterString: Text;
                 begin
+                    if not AppMgt.IsAppSubscriptionActive('') then begin
+                        AppMgt.SendAppSubscriptionNotification(false);
+                        exit;
+                    end;
                     SetSelectionFilter(ADLSESyncCompanies);
                     if ADLSESyncCompanies.FindSet() then
                         repeat
@@ -154,6 +163,10 @@ page 82566 "ADLSE Company Setup"
                 var
                     ADLSEExecution: Codeunit "ADLSE Execution";
                 begin
+                    if not AppMgt.IsAppSubscriptionActive('') then begin
+                        AppMgt.SendAppSubscriptionNotification(false);
+                        exit;
+                    end;
                     ADLSEExecution.SchemaExport();
                     CurrPage.Update();
                 end;
@@ -315,6 +328,7 @@ page 82566 "ADLSE Company Setup"
 
 
     var
+        AppMgt: Codeunit "ADLSE Setup";
         JobEarliestStartDateTime: DateTime;
         JobStatus: Option Ready,"In Process",Error,"On Hold",Finished,"On Hold with Inactivity Timeout",Waiting," ";
         JobObjectIDtoRun: Integer;
