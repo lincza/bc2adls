@@ -338,11 +338,13 @@ codeunit 82568 "ADLSE Gen 2 Util"
 
     procedure DropTableFromOpenMirroring(ADLSEntityName: Text; ADLSECredentials: Codeunit "ADLSE Credentials"; AllCompanies: Boolean)
     var
+        ADLSESyncCompanies: Record "ADLSE Sync Companies";
         ADLSESetup: Record "ADLSE Setup";
         ADLSEHttp: Codeunit "ADLSE Http";
         IsHandled: Boolean;
         Response: Text;
         Url: Text;
+        ResolvedLandingZone: Text;
     begin
         // DELETE https://onelake.dfs.fabric.microsoft.com/{CONTAINER_ID}/{MIRRORED_DATABASE_ID}/Files/LandingZone/{FOLDER_NAME}?recursive=true
         // https://learn.microsoft.com/en-us/fabric/database/mirrored-database/open-mirroring-landing-zone-format#drop-table
@@ -352,15 +354,37 @@ codeunit 82568 "ADLSE Gen 2 Util"
         if IsHandled then
             exit;
 
-
         if AllCompanies then begin
-            Url := ADLSESetup.LandingZone;
-            Url += '/' + ADLSEntityName + '?recursive=true';
+            // Iterate over all sync companies and issue a DELETE for each LandingZone
+            if ADLSESyncCompanies.FindSet(false) then
+                repeat
+                    if ADLSESyncCompanies.LandingZone <> '' then
+                        ResolvedLandingZone := ADLSESyncCompanies.LandingZone
+                    else
+                        ResolvedLandingZone := ADLSESetup.LandingZone;
+
+                    Url := ResolvedLandingZone + '/' + ADLSEntityName + '?recursive=true';
+
+                    Clear(ADLSEHttp);
+                    ADLSEHttp.SetMethod("ADLSE Http Method"::Delete);
+                    ADLSEHttp.SetUrl(Url);
+                    ADLSEHttp.SetAuthorizationCredentials(ADLSECredentials);
+                    ADLSEHttp.InvokeRestApi(Response);
+                until ADLSESyncCompanies.Next() = 0;
+        end else begin
+            // Single company: reset only the current company's LandingZone
+            ADLSESyncCompanies.Get(CompanyName());
+            if ADLSESyncCompanies.LandingZone <> '' then
+                ResolvedLandingZone := ADLSESyncCompanies.LandingZone
+            else
+                ResolvedLandingZone := ADLSESetup.LandingZone;
+
+            Url := ResolvedLandingZone + '/' + ADLSEntityName + '?recursive=true';
 
             ADLSEHttp.SetMethod("ADLSE Http Method"::Delete);
             ADLSEHttp.SetUrl(Url);
             ADLSEHttp.SetAuthorizationCredentials(ADLSECredentials);
-            ADLSEHttp.InvokeRestApi(Response)
+            ADLSEHttp.InvokeRestApi(Response);
         end;
     end;
 

@@ -18,6 +18,16 @@ table 82573 "ADLSE Sync Companies"
             Caption = 'Sync Company';
             TableRelation = Company.Name where("Evaluation Company" = const(false));
         }
+        field(32; LandingZone; Text[250])
+        {
+            Caption = 'Landing Zone';
+            ToolTip = 'Specifies the name of the Landing Zone where the data is going to be uploaded. This Landing Zone you can find at the Replication Status page in Microsoft Fabric.';
+
+            trigger OnValidate()
+            begin
+                CheckLandingZoneChange();
+            end;
+        }
 
     }
 
@@ -32,6 +42,7 @@ table 82573 "ADLSE Sync Companies"
     trigger OnInsert()
     var
     begin
+        CheckLandingZoneChange();
         UpsertAllTableIds(0);
     end;
 
@@ -44,6 +55,7 @@ table 82573 "ADLSE Sync Companies"
     trigger OnModify()
     var
     begin
+        CheckLandingZoneChange();
         UpsertAllTableIds(1);
     end;
 
@@ -96,5 +108,17 @@ table 82573 "ADLSE Sync Companies"
                         until ADLSECompaniesTable.Next() < 1;
                 end;
         end;
+    end;
+
+    local procedure CheckLandingZoneChange()
+    var
+        SyncCompanies: Record "ADLSE Sync Companies";
+    begin
+        if Rec.LandingZone = '' then
+            exit;
+        SyncCompanies.SetRange(LandingZone, Rec.LandingZone);
+        SyncCompanies.SetFilter("Sync Company", '<>%1', Rec."Sync Company");
+        if not SyncCompanies.IsEmpty() then
+            Error('Landing Zone ''%1'' is already assigned to another company.', Rec.LandingZone);
     end;
 }

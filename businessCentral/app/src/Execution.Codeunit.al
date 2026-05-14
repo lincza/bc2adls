@@ -112,11 +112,15 @@ codeunit 82569 "ADLSE Execution"
         ADLSESetup: Record "ADLSE Setup";
         ADLSETable: Record "ADLSE Table";
         ADLSECurrentSession: Record "ADLSE Current Session";
+        ADLSESyncCompanies: Record "ADLSE Sync Companies";
+        ADLSECompaniesTable: Record "ADLSE Companies Table";
         AllObjWithCaption: Record AllObjWithCaption;
         ADLSEExecute: Codeunit "ADLSE Execute";
         ADLSEExternalEvents: Codeunit "ADLSE External Events";
         ProgressWindowDialog: Dialog;
+        ResolvedLandingZone: Text;
         Progress1Msg: Label 'Current Table:           #1##########\', Comment = '#1: table caption';
+        Progress2Msg: Label 'Company:                 #1##########\Current Table:           #2##########\', Comment = '#1: company name, #2: table caption';
     begin
         // ensure that no current export sessions running
         ADLSECurrentSession.CheckForNoActiveSessions();
@@ -126,20 +130,58 @@ codeunit 82569 "ADLSE Execution"
         if not ADLSETable.FindSet(false) then
             exit;
 
-        if GuiAllowed() then
-            ProgressWindowDialog.Open(Progress1Msg);
+        ADLSESetup.GetSingleton();
 
-        repeat
-            if GuiAllowed() then begin
-                AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::Table);
-                AllObjWithCaption.SetRange("Object ID", ADLSETable."Table ID");
-                if AllObjWithCaption.FindFirst() then
+        // For Open Mirroring, export schema to each company's LandingZone
+        if ADLSESetup.GetStorageType() = ADLSESetup."Storage Type"::"Open Mirroring" then begin
+            if GuiAllowed() then
+                ProgressWindowDialog.Open(Progress2Msg);
+
+            if ADLSESyncCompanies.FindSet(false) then
+                repeat
+                    // Resolve LandingZone: company-specific or global fallback
+                    if ADLSESyncCompanies.LandingZone <> '' then
+                        ResolvedLandingZone := ADLSESyncCompanies.LandingZone
+                    else
+                        ResolvedLandingZone := ADLSESetup.LandingZone;
+
                     if GuiAllowed() then
-                        ProgressWindowDialog.Update(1, AllObjWithCaption."Object Caption");
-            end;
+                        ProgressWindowDialog.Update(1, ADLSESyncCompanies."Sync Company");
 
-            ADLSEExecute.ExportSchema(ADLSETable."Table ID");
-        until ADLSETable.Next() = 0;
+                    ADLSETable.FindSet(false);
+                    repeat
+                        // Only export schema for tables included for this company
+                        ADLSECompaniesTable.SetRange("Table ID", ADLSETable."Table ID");
+                        ADLSECompaniesTable.SetRange("Sync Company", ADLSESyncCompanies."Sync Company");
+                        ADLSECompaniesTable.SetRange(Include, true);
+                        if not ADLSECompaniesTable.IsEmpty() then begin
+                            if GuiAllowed() then begin
+                                AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::Table);
+                                AllObjWithCaption.SetRange("Object ID", ADLSETable."Table ID");
+                                if AllObjWithCaption.FindFirst() then
+                                    ProgressWindowDialog.Update(2, AllObjWithCaption."Object Caption");
+                            end;
+
+                            ADLSEExecute.ExportSchema(ADLSETable."Table ID", ResolvedLandingZone);
+                        end;
+                    until ADLSETable.Next() = 0;
+                until ADLSESyncCompanies.Next() = 0;
+        end else begin
+            // Non-Open Mirroring: existing single-pass behavior
+            if GuiAllowed() then
+                ProgressWindowDialog.Open(Progress1Msg);
+
+            repeat
+                if GuiAllowed() then begin
+                    AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::Table);
+                    AllObjWithCaption.SetRange("Object ID", ADLSETable."Table ID");
+                    if AllObjWithCaption.FindFirst() then
+                        ProgressWindowDialog.Update(1, AllObjWithCaption."Object Caption");
+                end;
+
+                ADLSEExecute.ExportSchema(ADLSETable."Table ID");
+            until ADLSETable.Next() = 0;
+        end;
 
         if GuiAllowed() then
             ProgressWindowDialog.Close();

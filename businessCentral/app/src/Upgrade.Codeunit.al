@@ -26,6 +26,7 @@ codeunit 82572 "ADLSE Upgrade"
         ContainerFieldFromIsolatedStorageToSetupField();
         SeperateSchemaAndData();
         CopyValuesFromExportCategoryToExportcategoryTable();
+        MigrateExportFileNumberToCompaniesTable();
     end;
 
     var
@@ -157,5 +158,45 @@ codeunit 82572 "ADLSE Upgrade"
     procedure GetCopyValuesFromExportCategoryToExportcategoryTableUpgradeTag(): Code[250]
     begin
         exit('GITHUB-225-CopyValuesFromExportCategoryToExportcategoryTable-20250121');
+    end;
+
+    local procedure MigrateExportFileNumberToCompaniesTable()
+    var
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if UpgradeTag.HasUpgradeTag(GetMigrateExportFileNumberToCompaniesTableUpgradeTag()) then
+            exit;
+        DoMigrateExportFileNumberToCompaniesTable();
+        UpgradeTag.SetUpgradeTag(GetMigrateExportFileNumberToCompaniesTableUpgradeTag());
+    end;
+
+    [InherentPermissions(PermissionObjectType::TableData, Database::"ADLSE Companies Table", 'rm')]
+    local procedure DoMigrateExportFileNumberToCompaniesTable()
+    var
+        ADLSESetup: Record "ADLSE Setup";
+        ADLSETable: Record "ADLSE Table";
+        ADLSECompaniesTable: Record "ADLSE Companies Table";
+    begin
+        ADLSESetup.GetOrCreate();
+        ADLSESetup."Set All New Tables Included" := true;
+        ADLSESetup.Modify();
+        // Copy the ExportFileNumber from each ADLSE Table record to all matching
+        // ADLSE Companies Table records so each company gets its own counter.
+        if ADLSETable.FindSet() then
+            repeat
+                ADLSECompaniesTable.SetRange("Table ID", ADLSETable."Table ID");
+                if ADLSECompaniesTable.FindSet(true) then
+                    repeat
+                        if ADLSECompaniesTable.ExportFileNumber = 0 then begin
+                            ADLSECompaniesTable.ExportFileNumber := ADLSETable.ExportFileNumber;
+                            ADLSECompaniesTable.Modify(false);
+                        end;
+                    until ADLSECompaniesTable.Next() = 0;
+            until ADLSETable.Next() = 0;
+    end;
+
+    procedure GetMigrateExportFileNumberToCompaniesTableUpgradeTag(): Code[250]
+    begin
+        exit('BC2ADLS-ExportFileNumberToCompaniesTable-20250603');
     end;
 }

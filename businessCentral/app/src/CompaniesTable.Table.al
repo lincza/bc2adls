@@ -51,6 +51,18 @@ table 82572 "ADLSE Companies Table"
         {
             Caption = 'Last error';
         }
+        field(65; Include; Boolean)
+        {
+            Caption = 'Include';
+            ToolTip = 'Specifies whether this table is included in the data export process to Azure Data Lake Storage Explorer.';
+            InitValue = true;
+            DataClassification = CustomerContent;
+        }
+        field(70; ExportFileNumber; Integer)
+        {
+            Caption = 'Export File Number';
+            DataClassification = CustomerContent;
+        }
     }
 
     keys
@@ -97,7 +109,7 @@ table 82572 "ADLSE Companies Table"
         ADLSETable: Record "ADLSE Table";
         ADLSECompaniesTable: Record "ADLSE Companies Table";
         RenameADLSECompaniesTable: Record "ADLSE Companies Table";
-        ADLSESyncCompanies: Record "ADLSE Sync Companies";
+        ADLSESetup: Record "ADLSE Setup";
         SyncCompany: Text[30];
         xSyncCompany: Text[30];
     begin
